@@ -1,0 +1,5156 @@
+<!DOCTYPE html>
+<!--
+  ==============================================================================
+  ROBLOX MATH: Интерактивный математический тренажёр (4 класс)
+  Версия: 1.1.0
+  Лицензия: MIT
+  Описание: Одностраничное веб-приложение (SPA) без внешних JS-зависимостей
+  для отработки навыков устного и письменного счёта в 4 классе начальной школы.
+  ==============================================================================
+-->
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ROBLOX MATH: Тренажёр 4 класс</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@700;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <style>
+    /* =========================================================================
+       1. CSS-ПЕРЕМЕННЫЕ И БАЗОВЫЙ СБРОС СТИЛЕЙ
+       ========================================================================= */
+    :root {
+      --bg-dark: #0f172a;
+      --panel-bg: rgba(15, 23, 42, 0.85);
+      --glass-border: rgba(255, 255, 255, 0.18);
+      --neon-blue: #00e5ff;
+      --neon-green: #00e676;
+      --neon-yellow: #ffea00;
+      --neon-red: #ff1744;
+      --neon-purple: #d500f9;
+      --neon-pink: #ff4081;
+      --cell-size: 40px;
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      margin: 0;
+      padding: 0;
+    }
+
+    input[type="text"] {
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    body {
+      font-family: 'Rubik', 'Segoe UI', system-ui, sans-serif;
+      background: radial-gradient(circle at 50% 20%, #1e293b 0%, #090d16 100%);
+      background-image: 
+        radial-gradient(circle at 50% 20%, rgba(0, 229, 255, 0.14) 0%, transparent 60%),
+        linear-gradient(rgba(255,255,255,0.03) 2px, transparent 2px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 2px, transparent 2px);
+      background-size: 100% 100%, 40px 40px, 40px 40px;
+      color: #ffffff;
+      height: 100vh;
+      height: 100dvh;
+      width: 100vw;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #app {
+      width: 100%;
+      max-width: 680px;
+      height: 100vh;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      padding: 8px 10px;
+      gap: 7px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .rblx-text {
+      font-weight: 900;
+      color: #ffffff;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      text-shadow: 
+        -2px -2px 0 #000,  
+         2px -2px 0 #000,
+        -2px  2px 0 #000,
+         2px  2px 0 #000,
+         0px  4px 0 #000,
+         0px  5px 10px rgba(0,0,0,0.6);
+    }
+
+    .glass-panel {
+      background: var(--panel-bg);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 2px solid var(--glass-border);
+      border-radius: 18px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255,255,255,0.2);
+    }
+
+    .rblx-btn {
+      font-family: 'Rubik', sans-serif;
+      font-weight: 900;
+      border: 3px solid #000;
+      border-radius: 14px;
+      color: #fff;
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.15s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      text-shadow: 
+        -1.5px -1.5px 0 #000, 1.5px -1.5px 0 #000,
+        -1.5px 1.5px 0 #000, 1.5px 1.5px 0 #000,
+        0 3px 0 #000;
+    }
+
+    .rblx-btn:hover:not(:disabled) { filter: brightness(1.08); }
+    .rblx-btn:active:not(:disabled) { transform: translateY(4px); }
+    .rblx-btn:disabled {
+      filter: grayscale(85%) opacity(0.5);
+      cursor: not-allowed;
+    }
+
+    .btn-green {
+      background: linear-gradient(180deg, #2ef08a 0%, #00c853 100%);
+      box-shadow: 0 5px 0 #00702e, 0 6px 12px rgba(0,0,0,0.4), inset 0 2px 0 rgba(255,255,255,0.45);
+    }
+    .btn-blue {
+      background: linear-gradient(180deg, #33ebff 0%, #00b0ff 100%);
+      box-shadow: 0 5px 0 #006699, 0 6px 12px rgba(0,0,0,0.4), inset 0 2px 0 rgba(255,255,255,0.45);
+    }
+    .btn-orange {
+      background: linear-gradient(180deg, #ffab40 0%, #ff6d00 100%);
+      box-shadow: 0 5px 0 #ab4700, 0 6px 12px rgba(0,0,0,0.4), inset 0 2px 0 rgba(255,255,255,0.45);
+    }
+    .btn-purple {
+      background: linear-gradient(180deg, #e040fb 0%, #aa00ff 100%);
+      box-shadow: 0 5px 0 #620099, 0 6px 12px rgba(0,0,0,0.4), inset 0 2px 0 rgba(255,255,255,0.45);
+    }
+    .btn-pink {
+      background: linear-gradient(180deg, #ff6090 0%, #f50057 100%);
+      box-shadow: 0 5px 0 #880e4f, 0 6px 12px rgba(0,0,0,0.4), inset 0 2px 0 rgba(255,255,255,0.45);
+    }
+    .btn-red {
+      background: linear-gradient(180deg, #ff5252 0%, #d50000 100%);
+      box-shadow: 0 5px 0 #7f0000, 0 6px 12px rgba(0,0,0,0.4), inset 0 2px 0 rgba(255,255,255,0.45);
+    }
+    .btn-slate {
+      background: linear-gradient(180deg, #475569 0%, #334155 100%);
+      box-shadow: 0 5px 0 #0f172a, 0 6px 12px rgba(0,0,0,0.4), inset 0 2px 0 rgba(255,255,255,0.3);
+    }
+
+    /* =========================================================================
+       2. ВЕРХНЯЯ ПАНЕЛЬ НАВИГАЦИИ И СТАТИСТИКИ (HUD)
+       ========================================================================= */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 10px;
+      gap: 6px;
+      flex-shrink: 0;
+      width: 100%;
+      max-width: 100%;
+      overflow: hidden;
+    }
+
+    .hud-group {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      min-width: 0;
+    }
+
+    .hud-group:first-child {
+      flex: 1 1 0%;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .hud-group:last-child {
+      flex: 0 0 auto;
+    }
+
+    .mini-profile {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0,0,0,0.5);
+      border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 12px;
+      padding: 2px 8px 2px 4px;
+      cursor: pointer;
+      flex: 0 1 auto;
+      min-width: 0;
+      max-width: 190px;
+      overflow: hidden;
+    }
+    .mini-profile:hover { border-color: var(--neon-blue); }
+
+    .mini-avatar-box {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: radial-gradient(circle, #38bdf8, #1e293b);
+      border: 1.5px solid #000;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .mini-avatar-box svg,
+    .helper-avatar svg,
+    #modal-avatar svg {
+      animation: avatarBob 2.4s ease-in-out infinite;
+    }
+
+    .mini-text-wrap {
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .mini-name {
+      font-size: 0.72rem;
+      line-height: 1.15;
+      font-weight: 900;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .mini-class {
+      font-size: 0.62rem;
+      color: var(--neon-yellow);
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .stat-pill {
+      background: rgba(0, 0, 0, 0.55);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      padding: 4px 8px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.9rem;
+      font-weight: 900;
+      flex-shrink: 0;
+    }
+
+    .robux-badge {
+      background: linear-gradient(135deg, #ffd700, #ff9100);
+      color: #000;
+      border: 2px solid #000;
+      border-radius: 7px;
+      padding: 1px 5px;
+      font-size: 0.75rem;
+      font-weight: 900;
+      text-shadow: none;
+    }
+
+    .icon-btn {
+      width: 36px;
+      height: 36px;
+      font-size: 1.05rem;
+      border-radius: 11px;
+      flex-shrink: 0;
+    }
+
+    /* =========================================================================
+       3. ГЛАВНОЕ МЕНЮ, КАРТОЧКА ГЕРОЯ, МИССИИ ДНЯ И ВЫБОР РЕЖИМА
+       ========================================================================= */
+    #menu-screen {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 2px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      min-height: 0;
+    }
+
+    .hero-profile-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border: 2px solid rgba(255, 64, 129, 0.5);
+      flex-shrink: 0;
+    }
+
+    .avatar-stage {
+      width: 88px;
+      height: 98px;
+      background: radial-gradient(circle at 50% 35%, rgba(0, 229, 255, 0.35), rgba(0, 0, 0, 0.65));
+      border: 3px solid #000;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: inset 0 0 12px rgba(0,229,255,0.3), 0 4px 0 #000;
+      cursor: pointer;
+    }
+
+    .avatar-float {
+      width: 100%;
+      height: 100%;
+      animation: avatarBob 2.4s ease-in-out infinite;
+    }
+
+    @keyframes avatarBob {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-4px); }
+    }
+
+    .hero-details {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .school-badge {
+      background: linear-gradient(90deg, #ff4081, #7c4dff);
+      border: 2px solid #000;
+      border-radius: 8px;
+      padding: 2px 8px;
+      font-size: 0.68rem;
+      font-weight: 900;
+      width: fit-content;
+      max-width: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .hero-name {
+      font-size: 1.18rem;
+      color: var(--neon-yellow);
+      line-height: 1.1;
+      word-break: break-word;
+    }
+    .hero-btns-row {
+      display: flex;
+      gap: 6px;
+      margin-top: 3px;
+      flex-wrap: wrap;
+    }
+
+    .missions-panel {
+      padding: 9px 12px;
+      border: 2px solid rgba(255, 234, 0, 0.45);
+      flex-shrink: 0;
+    }
+
+    .missions-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+      font-size: 0.85rem;
+      color: var(--neon-yellow);
+    }
+
+    #missions-list {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 5px;
+    }
+
+    .mission-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      background: rgba(0,0,0,0.45);
+      border: 1.5px solid rgba(255,255,255,0.12);
+      border-radius: 11px;
+      padding: 6px 9px;
+    }
+
+    .mission-info { flex: 1; min-width: 0; }
+    .mission-title { font-size: 0.76rem; font-weight: 900; color: #f8fafc; }
+    .mission-bar-bg {
+      height: 8px;
+      background: rgba(255,255,255,0.12);
+      border-radius: 5px;
+      margin-top: 4px;
+      overflow: hidden;
+    }
+    .mission-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #ffea00, #00e676);
+      transition: width 0.3s;
+    }
+    .mission-btn {
+      padding: 5px 9px;
+      font-size: 0.72rem;
+      border-radius: 9px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .menu-cards {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      padding-bottom: 6px;
+    }
+
+    .mode-btn {
+      width: 100%;
+      padding: 10px 14px;
+      text-align: left;
+      justify-content: space-between;
+      border-radius: 16px;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .mode-btn::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -60%;
+      width: 42%;
+      height: 200%;
+      background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.38) 50%,
+        rgba(255, 255, 255, 0) 100%
+      );
+      transform: rotate(25deg);
+      pointer-events: none;
+      z-index: 1;
+      animation: modeLightSweep 5.5s ease-in-out infinite;
+    }
+
+    .menu-cards .mode-btn:nth-child(1)::after { animation-delay: 0s; }
+    .menu-cards .mode-btn:nth-child(2)::after { animation-delay: 0.9s; }
+    .menu-cards .mode-btn:nth-child(3)::after { animation-delay: 1.8s; }
+    .menu-cards .mode-btn:nth-child(4)::after { animation-delay: 2.7s; }
+    .menu-cards .mode-btn:nth-child(5)::after { animation-delay: 3.6s; }
+
+    .mode-info, .mode-icon {
+      position: relative;
+      z-index: 2;
+    }
+
+    @keyframes modeLightSweep {
+      0%, 22% { left: -65%; opacity: 0; }
+      30% { opacity: 1; }
+      62% { left: 135%; opacity: 1; }
+      68%, 100% { left: 135%; opacity: 0; }
+    }
+
+    .mode-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .mode-tag {
+      font-size: 0.65rem;
+      background: rgba(0,0,0,0.45);
+      padding: 2px 7px;
+      border-radius: 6px;
+      width: fit-content;
+      color: var(--neon-yellow);
+    }
+    .mode-name { font-size: 1.02rem; line-height: 1.15; }
+    .mode-desc { font-size: 0.73rem; opacity: 0.92; font-weight: 700; }
+    .mode-icon { font-size: 1.85rem; filter: drop-shadow(0 3px 0 rgba(0,0,0,0.6)); flex-shrink: 0; }
+
+    /* =========================================================================
+       4. ЭКРАН РЕДАКТОРА ПРОФИЛЯ И БАЗОВОЙ ВНЕШНОСТИ
+       ========================================================================= */
+    #profile-screen {
+      flex: 1;
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      min-height: 0;
+    }
+
+    .profile-form-scroll {
+      flex: 1;
+      padding: 12px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 0;
+    }
+
+    .form-group-title {
+      font-size: 0.8rem;
+      color: var(--neon-yellow);
+      font-weight: 900;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .input-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .field-label {
+      font-size: 0.7rem;
+      color: #cbd5e1;
+      font-weight: 700;
+      margin-bottom: 3px;
+      display: block;
+    }
+
+    .rblx-input {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.65);
+      border: 2.5px solid rgba(255, 255, 255, 0.28);
+      border-radius: 11px;
+      padding: 8px 10px;
+      color: #fff;
+      font-family: 'Rubik', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 900;
+      outline: none;
+    }
+    .rblx-input:focus {
+      border-color: var(--neon-blue);
+      box-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
+    }
+
+    .option-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .pill-choice {
+      padding: 6px 10px;
+      font-size: 0.75rem;
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.55);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      font-family: 'Rubik', sans-serif;
+      font-weight: 900;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .pill-choice.active {
+      border-color: var(--neon-green);
+      background: rgba(0, 230, 118, 0.22);
+      box-shadow: 0 0 10px rgba(0, 230, 118, 0.3);
+    }
+
+    .color-swatch {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid #000;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+
+    /* =========================================================================
+       5. МАГАЗИН СКИНОВ (6 КАТЕГОРИЙ ЭКИПИРОВКИ)
+       ========================================================================= */
+    #shop-screen {
+      flex: 1;
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      min-height: 0;
+    }
+
+    .shop-preview-panel {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      flex-shrink: 0;
+    }
+
+    .shop-avatar-stage {
+      width: 104px;
+      height: 114px;
+      background: radial-gradient(circle at 50% 35%, rgba(255, 64, 129, 0.35), rgba(0, 0, 0, 0.75));
+      border: 3px solid #000;
+      border-radius: 18px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .shop-tabs {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 5px;
+      flex-shrink: 0;
+    }
+
+    .tab-btn {
+      padding: 6px 4px;
+      font-size: 0.68rem;
+      border-radius: 10px;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .shop-items-grid {
+      flex: 1;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      padding: 8px;
+      overflow-y: auto;
+      align-content: start;
+      min-height: 0;
+    }
+
+    .skin-card {
+      background: rgba(0, 0, 0, 0.55);
+      border: 2px solid rgba(255, 255, 255, 0.18);
+      border-radius: 14px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      gap: 5px;
+      text-align: center;
+    }
+
+    .skin-card.equipped {
+      border-color: var(--neon-green);
+      box-shadow: 0 0 12px rgba(0, 230, 118, 0.25);
+      background: rgba(0, 230, 118, 0.1);
+    }
+
+    .skin-icon { font-size: 1.9rem; height: 38px; display: flex; align-items: center; justify-content: center; }
+    .skin-title { font-size: 0.8rem; font-weight: 900; line-height: 1.15; }
+    .skin-action-btn { width: 100%; padding: 6px; font-size: 0.74rem; border-radius: 9px; }
+
+    /* =========================================================================
+       6. АРХИВ ЗАДАНИЙ И РАБОТА НАД ОШИБКАМИ
+       ========================================================================= */
+    #archive-screen {
+      flex: 1;
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      min-height: 0;
+    }
+
+    .archive-header-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 10px 12px;
+      border: 2px solid rgba(0, 229, 255, 0.45);
+      flex-shrink: 0;
+    }
+
+    .archive-top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .archive-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+
+    .archive-stat-box {
+      background: rgba(0, 0, 0, 0.5);
+      border: 1.5px solid rgba(255, 255, 255, 0.16);
+      border-radius: 10px;
+      padding: 5px 6px;
+      text-align: center;
+    }
+
+    .archive-stat-num {
+      font-size: 1.05rem;
+      font-weight: 900;
+      line-height: 1.1;
+    }
+
+    .archive-stat-lbl {
+      font-size: 0.62rem;
+      color: #cbd5e1;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+
+    .archive-filters-row {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .filter-chip {
+      padding: 5px 9px;
+      font-size: 0.7rem;
+      border-radius: 9px;
+      background: rgba(0, 0, 0, 0.55);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      color: #e2e8f0;
+      font-family: 'Rubik', sans-serif;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .filter-chip.active {
+      border-color: var(--neon-blue);
+      background: rgba(0, 229, 255, 0.22);
+      color: #fff;
+      box-shadow: 0 0 10px rgba(0, 229, 255, 0.25);
+    }
+
+    .archive-list-scroll {
+      flex: 1;
+      padding: 10px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-height: 0;
+    }
+
+    .archive-card {
+      background: rgba(0, 0, 0, 0.55);
+      border: 2px solid rgba(255, 255, 255, 0.16);
+      border-radius: 14px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .archive-card.status-flawless { border-left: 5px solid var(--neon-green); }
+    .archive-card.status-corrected { border-left: 5px solid var(--neon-yellow); }
+    .archive-card.status-failed { border-left: 5px solid var(--neon-red); }
+
+    .archive-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .archive-badge {
+      font-size: 0.65rem;
+      font-weight: 900;
+      padding: 2px 7px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--neon-blue);
+    }
+
+    .archive-status-tag {
+      font-size: 0.68rem;
+      font-weight: 900;
+      padding: 2px 8px;
+      border-radius: 6px;
+      border: 1.5px solid #000;
+    }
+
+    .tag-flawless { background: rgba(0, 230, 118, 0.22); color: var(--neon-green); border-color: var(--neon-green); }
+    .tag-corrected { background: rgba(255, 234, 0, 0.2); color: var(--neon-yellow); border-color: var(--neon-yellow); }
+    .tag-failed { background: rgba(255, 23, 68, 0.25); color: #ff8a80; border-color: var(--neon-red); }
+
+    .archive-task-box {
+      font-size: 0.86rem;
+      font-weight: 900;
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 7px 10px;
+      border-radius: 9px;
+      line-height: 1.35;
+      word-break: break-word;
+    }
+
+    .archive-compare-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .archive-ans-box {
+      background: rgba(15, 23, 42, 0.75);
+      border: 1.5px solid rgba(255, 255, 255, 0.14);
+      border-radius: 9px;
+      padding: 6px 9px;
+      font-size: 0.76rem;
+      line-height: 1.3;
+    }
+
+    .archive-ans-lbl {
+      font-size: 0.63rem;
+      text-transform: uppercase;
+      color: #94a3b8;
+      font-weight: 900;
+      margin-bottom: 2px;
+    }
+
+    .archive-mistakes-box {
+      background: rgba(255, 23, 68, 0.12);
+      border: 1.5px dashed rgba(255, 82, 82, 0.5);
+      border-radius: 9px;
+      padding: 6px 9px;
+      font-size: 0.73rem;
+      color: #fecdd3;
+      line-height: 1.3;
+    }
+
+    .archive-empty {
+      margin: auto;
+      text-align: center;
+      padding: 28px 16px;
+      color: #94a3b8;
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+
+    /* =========================================================================
+       7. ИГРОВОЙ ЭКРАН, СЕТКА СТОЛБИКА, ДЕЛЕНИЕ УГОЛКОМ И ЭКРАННАЯ КЛАВИАТУРА
+       ========================================================================= */
+    #game-screen {
+      flex: 1;
+      display: none;
+      flex-direction: column;
+      gap: 6px;
+      min-height: 0;
+    }
+
+    .status-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 0 2px;
+      flex-shrink: 0;
+    }
+
+    .progress-wrap {
+      flex: 1;
+      height: 22px;
+      background: rgba(0, 0, 0, 0.65);
+      border: 3px solid #000;
+      border-radius: 11px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 20%;
+      background: linear-gradient(90deg, #00e676, #00e5ff);
+      transition: width 0.3s;
+    }
+
+    .progress-label {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.72rem;
+      font-weight: 900;
+      text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+    }
+
+    .hearts-box {
+      display: flex;
+      gap: 4px;
+      font-size: 1.25rem;
+      filter: drop-shadow(0 2px 0 #000);
+      flex-shrink: 0;
+    }
+
+    .heart.lost {
+      filter: grayscale(100%) opacity(0.3);
+      transform: scale(0.85);
+    }
+
+    .board-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      padding: 8px 10px;
+      position: relative;
+      overflow-y: auto;
+      overflow-x: hidden;
+      min-height: 0;
+      gap: 8px;
+    }
+
+    .helper-bar {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      background: rgba(0, 0, 0, 0.45);
+      border: 2px solid rgba(255, 255, 255, 0.16);
+      border-radius: 14px;
+      padding: 6px 10px;
+      flex-shrink: 0;
+    }
+
+    .helper-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .helper-avatar {
+      width: 42px;
+      height: 46px;
+      border-radius: 11px;
+      background: radial-gradient(circle at 50% 35%, rgba(0, 229, 255, 0.35), rgba(0, 0, 0, 0.65));
+      border: 2px solid #000;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      box-shadow: inset 0 0 8px rgba(0,229,255,0.25);
+    }
+
+    .hint-text {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #e2e8f0;
+      line-height: 1.25;
+      word-break: break-word;
+    }
+
+    .paid-hint-btn {
+      padding: 6px 10px;
+      font-size: 0.72rem;
+      border-radius: 10px;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
+    .blitz-timer-wrap {
+      width: 100%;
+      height: 10px;
+      background: rgba(0,0,0,0.6);
+      border: 2px solid #000;
+      border-radius: 6px;
+      overflow: hidden;
+      display: none;
+      flex-shrink: 0;
+    }
+
+    .blitz-timer-bar {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, #ff1744, #ffea00, #00e676);
+      transition: width 0.1s linear;
+    }
+
+    .workspace {
+      margin: auto 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      width: 100%;
+      max-width: 100%;
+      overflow-x: auto;
+      padding: 6px 2px;
+      flex-shrink: 0;
+    }
+
+    .math-grid {
+      display: grid;
+      gap: 4px;
+      align-items: center;
+      justify-items: center;
+      max-width: 100%;
+      padding-top: 12px;
+    }
+
+    .cell {
+      width: var(--cell-size);
+      height: var(--cell-size);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.35rem;
+      font-weight: 900;
+      border-radius: 10px;
+      position: relative;
+      transition: all 0.15s ease;
+    }
+
+    .cell-digit {
+      background: rgba(255, 255, 255, 0.07);
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      text-shadow: 0 2px 0 #000;
+    }
+
+    .cell-op {
+      font-size: 1.5rem;
+      color: var(--neon-blue);
+      text-shadow: 0 2px 0 #000;
+    }
+
+    .cell-input {
+      background: rgba(0, 0, 0, 0.65);
+      border: 3px solid rgba(255, 255, 255, 0.35);
+      box-shadow: inset 0 3px 6px rgba(0,0,0,0.7);
+      color: #fff;
+    }
+
+    .cell-carry {
+      width: 30px;
+      height: 24px;
+      font-size: 0.85rem;
+      border-radius: 7px;
+      border-style: dashed;
+      border-width: 2px;
+      color: var(--neon-yellow);
+      margin-top: 6px;
+    }
+
+    .cell-carry::before {
+      content: 'в уме';
+      position: absolute;
+      top: -12px;
+      font-size: 0.45rem;
+      color: #94a3b8;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .cell-carry.cell-borrow::before {
+      content: 'заём';
+      color: #ff8a80;
+    }
+
+    .cell-input.active {
+      border-color: var(--neon-yellow);
+      border-style: solid;
+      background: rgba(255, 234, 0, 0.18);
+      box-shadow: 0 0 15px var(--neon-yellow), inset 0 0 8px rgba(255, 234, 0, 0.3);
+      transform: scale(1.06);
+      z-index: 3;
+      animation: pulseGlow 1.3s infinite alternate;
+    }
+
+    .cell-input.correct {
+      background: linear-gradient(180deg, #00e676, #00b248);
+      border-color: #000;
+      border-style: solid;
+      color: #fff;
+      text-shadow: -1.5px -1.5px 0 #000, 1.5px -1.5px 0 #000, -1.5px 1.5px 0 #000, 1.5px 1.5px 0 #000, 0 2px 0 #000;
+      box-shadow: 0 3px 0 #006024;
+    }
+
+    .cell-input.wrong {
+      background: linear-gradient(180deg, #ff5252, #d50000);
+      border-color: #000;
+      border-style: solid;
+      animation: shakeErr 0.35s ease;
+    }
+
+    .grid-line {
+      height: 4px;
+      background: #ffffff;
+      border-radius: 2px;
+      width: 100%;
+      box-shadow: 0 2px 0 #000;
+      margin: 2px 0;
+    }
+
+    .substep-card:not(.unlocked) .substep-inputs {
+      display: none;
+    }
+
+    .division-grid {
+      display: inline-grid;
+      gap: 0 !important;
+      padding: 0 !important;
+      margin-top: 6px;
+      background: #101e36;
+      border: 2px solid rgba(96, 165, 250, 0.55);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.55);
+    }
+
+    .division-grid .cell {
+      border-radius: 0 !important;
+      border-right: 1px solid rgba(96, 165, 250, 0.35);
+      border-bottom: 1px solid rgba(96, 165, 250, 0.35);
+      border-top: none;
+      border-left: none;
+      background: transparent;
+      margin: 0;
+      transform: none !important;
+    }
+
+    .division-grid .cell-digit {
+      background: rgba(255, 255, 255, 0.05);
+      color: #ffffff;
+    }
+
+    .division-grid .cell-input {
+      background: rgba(0, 229, 255, 0.09);
+      box-shadow: inset 0 0 0 1.5px rgba(0, 229, 255, 0.42);
+    }
+
+    .division-grid .cell-input.active {
+      background: rgba(255, 234, 0, 0.25);
+      box-shadow: inset 0 0 0 3px var(--neon-yellow);
+      z-index: 4;
+    }
+
+    .division-grid .cell-input.correct {
+      background: rgba(0, 230, 118, 0.28);
+      box-shadow: inset 0 0 0 2px var(--neon-green);
+      color: #ffffff;
+    }
+
+    .division-grid .cell-input.wrong {
+      background: rgba(255, 23, 68, 0.45);
+      box-shadow: inset 0 0 0 3px var(--neon-red);
+    }
+
+    .division-grid .div-corner-right {
+      border-right: 3.5px solid #ffffff !important;
+    }
+
+    .division-grid .div-corner-bottom {
+      border-bottom: 3.5px solid #ffffff !important;
+    }
+
+    .division-grid .div-sub-bottom {
+      border-bottom: 3.5px solid #ffffff !important;
+    }
+
+    .division-grid .div-minus-cell {
+      color: var(--neon-blue);
+      font-size: 1.45rem;
+      font-weight: 900;
+      text-shadow: 0 2px 0 #000;
+      overflow: visible;
+      z-index: 3;
+    }
+
+    .division-grid .div-minus-cell span {
+      display: inline-block;
+      transform: translateY(-50%);
+      background: #132038;
+      padding: 0 3px;
+      line-height: 1;
+      border-radius: 4px;
+    }
+
+    .order-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .expr-row {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 5px;
+      background: rgba(0, 0, 0, 0.45);
+      padding: 10px 12px;
+      border-radius: 16px;
+      border: 2px solid rgba(255,255,255,0.15);
+      max-width: 100%;
+    }
+
+    .expr-token {
+      font-size: 1.45rem;
+      font-weight: 900;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 2px;
+    }
+
+    .expr-op-col { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+
+    .order-circle {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.7);
+      border: 2.5px dashed var(--neon-blue);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.95rem;
+      font-weight: 900;
+      cursor: pointer;
+      color: #fff;
+    }
+
+    .order-circle.correct {
+      background: linear-gradient(180deg, #00e676, #00b248);
+      border: 2.5px solid #000;
+      box-shadow: 0 3px 0 #000;
+      cursor: default;
+    }
+
+    .order-circle.wrong {
+      background: var(--neon-red);
+      border-color: #000;
+      animation: shakeErr 0.35s ease;
+    }
+
+    .substeps-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      width: 100%;
+      max-width: 440px;
+    }
+
+    .substep-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      padding: 5px 10px;
+      opacity: 0.42;
+    }
+
+    .substep-card.unlocked {
+      opacity: 1;
+      border-color: rgba(0, 229, 255, 0.45);
+      background: rgba(0, 0, 0, 0.45);
+    }
+
+    .substep-label { font-size: 1.02rem; font-weight: 900; display: flex; align-items: center; gap: 6px; }
+    .step-badge {
+      background: var(--neon-blue);
+      color: #000;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      border: 2px solid #000;
+      flex-shrink: 0;
+    }
+    .substep-inputs { display: flex; gap: 4px; flex-shrink: 0; }
+
+    .blitz-box {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      background: rgba(0,0,0,0.5);
+      border: 3px solid var(--neon-blue);
+      border-radius: 20px;
+      padding: 20px 24px;
+      box-shadow: 0 0 25px rgba(0,229,255,0.2);
+      max-width: 100%;
+    }
+
+    .blitz-expr { font-size: 2.2rem; }
+
+    .word-problem-card {
+      background: rgba(0, 0, 0, 0.55);
+      border: 2px solid rgba(255, 255, 255, 0.22);
+      border-radius: 16px;
+      padding: 10px 12px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .wp-text {
+      font-size: 0.86rem;
+      line-height: 1.35;
+      color: #f8fafc;
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 8px 10px;
+      border-radius: 11px;
+      border-left: 4px solid var(--neon-blue);
+    }
+
+    .wp-op-selector {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      background: rgba(0, 229, 255, 0.1);
+      border: 2px dashed var(--neon-blue);
+      padding: 7px 10px;
+      border-radius: 12px;
+    }
+
+    .wp-op-btns { display: flex; gap: 6px; }
+    .wp-op-btn { width: 40px; height: 36px; font-size: 1.25rem; border-radius: 10px; }
+
+    .wp-solution-area {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .wp-solution-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: rgba(15, 23, 42, 0.75);
+      border: 2px solid rgba(255, 255, 255, 0.18);
+      border-radius: 14px;
+      padding: 8px 12px;
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    .wp-section-tag {
+      font-size: 0.7rem;
+      color: var(--neon-yellow);
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .wp-answer-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      background: rgba(255,255,255,0.06);
+      padding: 7px 12px;
+      border-radius: 12px;
+      border: 2px solid rgba(0, 230, 118, 0.4);
+      width: 100%;
+      opacity: 0.4;
+      transition: opacity 0.25s;
+    }
+
+    .wp-answer-row.unlocked {
+      opacity: 1;
+      background: rgba(0, 230, 118, 0.12);
+    }
+
+    .numpad {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+      padding: 7px;
+      flex-shrink: 0;
+    }
+
+    .num-key { height: 42px; font-size: 1.3rem; border-radius: 12px; }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.84);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 16px;
+    }
+
+    .modal-box {
+      width: 100%;
+      max-width: 440px;
+      padding: 20px 18px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      border: 3px solid var(--neon-yellow);
+      max-height: 94dvh;
+      overflow-y: auto;
+    }
+
+    .reward-row { display: flex; justify-content: center; gap: 10px; }
+    .reward-card {
+      background: rgba(0,0,0,0.5);
+      border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 14px;
+      padding: 8px 12px;
+      flex: 1;
+    }
+    .reward-val { font-size: 1.5rem; color: var(--neon-yellow); margin-top: 2px; }
+
+    .float-coin {
+      position: fixed;
+      pointer-events: none;
+      font-weight: 900;
+      font-size: 1.25rem;
+      z-index: 99;
+      text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000, 0 3px 0 #000;
+      animation: floatUp 0.95s ease-out forwards;
+    }
+
+    @keyframes pulseGlow {
+      0% { box-shadow: 0 0 8px var(--neon-yellow); }
+      100% { box-shadow: 0 0 20px var(--neon-yellow), 0 0 8px #fff; }
+    }
+
+    @keyframes shakeErr {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-7px); }
+      50% { transform: translateX(7px); }
+      75% { transform: translateX(-5px); }
+    }
+
+    @keyframes floatUp {
+      0% { transform: translateY(0) scale(0.9); opacity: 1; }
+      100% { transform: translateY(-45px) scale(1.15); opacity: 0; }
+    }
+
+    /* =========================================================================
+       8. АДАПТИВНАЯ ВЁРСТКА (ПЛАНШЕТЫ, МОБИЛЬНЫЕ УСТРОЙСТВА И МАЛЫЕ ЭКРАНЫ)
+       ========================================================================= */
+    @media (min-width: 768px) {
+      :root { --cell-size: 44px; }
+      #app { max-width: 920px; padding: 12px 18px; gap: 10px; }
+      .mini-profile { max-width: 280px; }
+      .mini-name { font-size: 0.82rem; }
+      .mini-class { font-size: 0.7rem; }
+      #missions-list { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+      .mission-row { flex-direction: column; align-items: stretch; justify-content: space-between; padding: 8px 10px; }
+      .menu-cards { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+      .menu-cards .mode-btn:last-child { grid-column: 1 / -1; }
+      .shop-items-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 12px; }
+      .numpad { grid-template-columns: repeat(10, 1fr); padding: 8px 10px; }
+      .wp-text { font-size: 0.95rem; }
+    }
+
+    @media (max-width: 560px) {
+      .top-bar { padding: 5px 7px; gap: 4px; }
+      .hud-group { gap: 4px; }
+      .mini-profile { padding: 2px 6px 2px 3px; gap: 5px; max-width: 100%; }
+      .mini-avatar-box { width: 28px; height: 28px; }
+      .stat-pill { padding: 3px 6px; font-size: 0.8rem; gap: 3px; border-radius: 10px; }
+      .robux-badge { padding: 1px 4px; font-size: 0.68rem; }
+      .icon-btn { width: 32px; height: 32px; font-size: 0.92rem; border-radius: 9px; border-width: 2px; }
+      .shop-tabs { grid-template-columns: repeat(3, 1fr); }
+      .tab-btn { flex-direction: row; padding: 6px 6px; font-size: 0.7rem; }
+      .archive-compare-grid { grid-template-columns: 1fr; }
+      .archive-stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 440px) {
+      :root { --cell-size: 35px; }
+      #app { padding: 6px 6px; gap: 5px; }
+      .top-bar { padding: 4px 6px; gap: 3px; }
+      .hud-group { gap: 3px; }
+      .mini-profile { padding: 2px 5px 2px 3px; gap: 4px; }
+      .mini-avatar-box { width: 25px; height: 25px; }
+      .mini-name { font-size: 0.66rem; }
+      .mini-class { font-size: 0.56rem; }
+      .stat-pill { padding: 2px 5px; font-size: 0.72rem; gap: 2px; border-radius: 9px; }
+      .robux-badge { padding: 0px 3px; font-size: 0.64rem; }
+      .icon-btn { width: 28px; height: 28px; font-size: 0.82rem; border-radius: 8px; border-width: 2px; }
+      .hero-profile-card { padding: 8px 9px; gap: 9px; }
+      .avatar-stage { width: 70px; height: 80px; }
+      .hero-name { font-size: 1rem; }
+      .helper-bar { flex-wrap: wrap; padding: 5px 8px; gap: 6px; }
+      .paid-hint-btn { width: 100%; justify-content: center; padding: 5px 8px; }
+      .input-grid-2 { grid-template-columns: 1fr; }
+      .expr-token { font-size: 1.18rem; height: 30px; }
+      .blitz-expr { font-size: 1.7rem; }
+      .modal-buttons-row { flex-wrap: wrap; }
+    }
+
+    @media (max-width: 365px) {
+      :root { --cell-size: 32px; }
+      .mini-text-wrap { display: none; }
+      .mini-profile { padding: 2px; border-radius: 9px; }
+      .icon-btn { width: 26px; height: 26px; font-size: 0.78rem; }
+      .stat-pill { padding: 2px 4px; font-size: 0.68rem; }
+    }
+
+    @media (max-height: 740px) {
+      :root { --cell-size: 34px; }
+      .cell { font-size: 1.15rem; }
+      .cell-carry { width: 25px; height: 20px; font-size: 0.75rem; }
+      .num-key { height: 36px; font-size: 1.15rem; }
+      .avatar-stage { width: 72px; height: 80px; }
+      .shop-avatar-stage { width: 80px; height: 88px; }
+      .wp-text { font-size: 0.8rem; padding: 6px 8px; }
+    }
+
+    @media (max-height: 600px) {
+      .numpad { grid-template-columns: repeat(10, 1fr); padding: 5px 6px; }
+      .num-key { height: 32px; font-size: 1.05rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="app">
+  <!-- Верхняя панель игрока (HUD): профиль, баланс R$, серия побед, быстрые кнопки -->
+  <div class="top-bar glass-panel">
+    <div class="hud-group">
+      <button id="btn-home" class="rblx-btn btn-slate icon-btn" onclick="goToMenu()" title="В главное меню" style="display: none;">🏠</button>
+      <div class="mini-profile" onclick="openProfileEditor()" title="Настроить профиль и внешность">
+        <div id="hud-avatar" class="mini-avatar-box"></div>
+        <div class="mini-text-wrap">
+          <div id="hud-name" class="mini-name">Ученик</div>
+          <div id="hud-school" class="mini-class">Математика • 4 класс</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hud-group">
+      <div class="stat-pill">
+        <span class="robux-badge">R$</span>
+        <span id="robux-val" class="rblx-text">0</span>
+      </div>
+      <div class="stat-pill" title="Серия без ошибок">
+        <span>🔥</span>
+        <span id="streak-val" class="rblx-text">0</span>
+      </div>
+      <button class="rblx-btn btn-purple icon-btn" onclick="openArchive()" title="Архив заданий и ответов">📋</button>
+      <button class="rblx-btn btn-slate icon-btn" onclick="openProfileEditor()" title="Редактор персонажа">⚙️</button>
+      <button id="btn-sound" class="rblx-btn btn-slate icon-btn" onclick="toggleSound()" title="Звук">🔊</button>
+    </div>
+  </div>
+
+  <!-- Главное меню: карточка персонажа, ежедневные миссии и 5 учебных блоков -->
+  <div id="menu-screen">
+    <div class="hero-profile-card glass-panel">
+      <div class="avatar-stage" onclick="openProfileEditor()" title="Нажми для настройки внешности">
+        <div id="menu-avatar" class="avatar-float"></div>
+      </div>
+      <div class="hero-details">
+        <span id="menu-school-badge" class="school-badge">🏫 ТРЕНАЖЁР • 4 КЛАСС</span>
+        <h1 id="menu-hero-name" class="hero-name rblx-text">УЧЕНИК</h1>
+        <p style="font-size: 0.72rem; color: #cbd5e1; font-weight: 700;">На весь этап: 1 подсказка (15 R$) и 1 право на ошибку (−10 R$)!</p>
+        <div class="hero-btns-row">
+          <button class="rblx-btn btn-blue" style="padding: 7px 10px; font-size: 0.74rem; flex: 1;" onclick="openProfileEditor()">
+            ✏️ ПРОФИЛЬ И ВНЕШНОСТЬ
+          </button>
+          <button class="rblx-btn btn-pink" style="padding: 7px 10px; font-size: 0.74rem; flex: 1;" onclick="openShop()">
+            🛍️ МАГАЗИН СКИНОВ
+          </button>
+          <button class="rblx-btn btn-purple" style="padding: 7px 10px; font-size: 0.74rem; flex: 1;" onclick="openArchive()">
+            📋 АРХИВ (<span id="menu-archive-count">0</span>)
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="missions-panel glass-panel">
+      <div class="missions-header">
+        <span class="rblx-text">🎯 МИССИИ ДНЯ (ПО +100 R$ ЗА КАЖДУЮ)</span>
+        <span id="missions-date" style="font-size: 0.7rem; color: #94a3b8; font-weight: 700;">Выполнено: 0 / 3</span>
+      </div>
+      <div id="missions-list"></div>
+    </div>
+
+    <div class="menu-cards">
+      <button class="rblx-btn btn-green mode-btn" onclick="startBlock(1)">
+        <div class="mode-info">
+          <span class="mode-tag">БЛОК 1 • 5 ПРИМЕРОВ</span>
+          <span class="mode-name rblx-text">Сложение и вычитание в столбик</span>
+          <span class="mode-desc">Двузначные, трёхзначные и четырёхзначные числа + «в уме» и «заём»</span>
+        </div>
+        <span class="mode-icon">➕</span>
+      </button>
+
+      <button class="rblx-btn btn-orange mode-btn" onclick="startBlock(2)">
+        <div class="mode-info">
+          <span class="mode-tag">БЛОК 2 • 5 ПРИМЕРОВ</span>
+          <span class="mode-name rblx-text">Порядок выполнения действий</span>
+          <span class="mode-desc">Скобки, ×, ÷, +, − и пошаговый расчёт</span>
+        </div>
+        <span class="mode-icon">🔢</span>
+      </button>
+
+      <button class="rblx-btn btn-purple mode-btn" onclick="startBlock(3)">
+        <div class="mode-info">
+          <span class="mode-tag">БЛОК 3 • 5 ПРИМЕРОВ</span>
+          <span class="mode-name rblx-text">Умножение и деление в столбик</span>
+          <span class="mode-desc">Умножение в столбик и полное деление «уголком»</span>
+        </div>
+        <span class="mode-icon">➗</span>
+      </button>
+
+      <button class="rblx-btn btn-red mode-btn" onclick="startBlock(4)">
+        <div class="mode-info">
+          <span class="mode-tag">БЛОК 4 • 10 ЗАДАНИЙ НА СКОРОСТЬ</span>
+          <span class="mode-name rblx-text">⚡ БЛИЦ: Таблица умножения и деления</span>
+          <span class="mode-desc">Успей решить за 8 секунд каждый пример!</span>
+        </div>
+        <span class="mode-icon">⚡</span>
+      </button>
+
+      <button class="rblx-btn btn-blue mode-btn" onclick="startBlock(5)">
+        <div class="mode-info">
+          <span class="mode-tag">БЛОК 5 • 5 ТЕКСТОВЫХ ЗАДАЧ С РЕШЕНИЕМ</span>
+          <span class="mode-name rblx-text">📖 ЗАДАЧИ: Запись решения в столбик и ответ</span>
+          <span class="mode-desc">Выбери действие, запиши числа в столбик, вычисли и напиши ответ!</span>
+        </div>
+        <span class="mode-icon">📖</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Экран настройки анкеты ученика и базовой внешности аватара -->
+  <div id="profile-screen">
+    <div class="shop-preview-panel glass-panel">
+      <div class="shop-avatar-stage">
+        <div id="profile-avatar" class="avatar-float"></div>
+      </div>
+      <div class="hero-details">
+        <span class="school-badge">⚙️ НАСТРОЙКА ПЕРСОНАЖА</span>
+        <h2 id="profile-preview-name" class="rblx-text" style="font-size: 1.15rem; color: var(--neon-yellow);">УЧЕНИК</h2>
+        <p style="font-size: 0.75rem; color: #cbd5e1; font-weight: 700;">Настрой никнейм, класс и базовую внешность своего героя!</p>
+        <div style="display: flex; gap: 6px; margin-top: 4px;">
+          <button id="btn-profile-done" class="rblx-btn btn-green" style="padding: 6px 14px; font-size: 0.78rem; border-radius: 10px;" onclick="saveProfileAndClose()">✓ СОХРАНИТЬ И ВЫЙТИ</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="profile-form-scroll glass-panel">
+      <div>
+        <div class="form-group-title">1. Анкета игрока</div>
+        <div class="input-grid-2">
+          <div>
+            <label class="field-label">Имя или никнейм</label>
+            <input id="inp-first-name" type="text" class="rblx-input" maxlength="18" placeholder="Ученик" oninput="updateProfileInputs()">
+          </div>
+          <div>
+            <label class="field-label">Фамилия (необязательно)</label>
+            <input id="inp-last-name" type="text" class="rblx-input" maxlength="20" placeholder="Необязательно" oninput="updateProfileInputs()">
+          </div>
+          <div>
+            <label class="field-label">Школа (необязательно)</label>
+            <input id="inp-school" type="text" class="rblx-input" maxlength="12" placeholder="Необязательно" oninput="updateProfileInputs()">
+          </div>
+          <div>
+            <label class="field-label">Класс</label>
+            <input id="inp-grade" type="text" class="rblx-input" maxlength="6" placeholder="4" oninput="updateProfileInputs()">
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="form-group-title">2. Персонаж</div>
+        <div id="pills-gender" class="option-pills"></div>
+      </div>
+
+      <div>
+        <div class="form-group-title">3. Цвет кожи</div>
+        <div id="pills-skin" class="option-pills"></div>
+      </div>
+
+      <div>
+        <div class="form-group-title">4. Причёска / Наличие волос</div>
+        <div id="pills-hair-style" class="option-pills"></div>
+      </div>
+
+      <div>
+        <div class="form-group-title">5. Цвет волос</div>
+        <div id="pills-hair-color" class="option-pills"></div>
+      </div>
+
+      <div>
+        <div class="form-group-title">6. Форма и цвет глаз</div>
+        <div id="pills-eyes" class="option-pills"></div>
+      </div>
+
+      <div>
+        <div class="form-group-title">7. Очки по умолчанию</div>
+        <div id="pills-base-glasses" class="option-pills"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Экран магазина скинов: 6 комбинируемых слотов кастомизации -->
+  <div id="shop-screen">
+    <div class="shop-preview-panel glass-panel">
+      <div class="shop-avatar-stage">
+        <div id="shop-avatar" class="avatar-float"></div>
+      </div>
+      <div class="hero-details">
+        <span class="school-badge">✨ КОМБИНИРУЙ ВЕЩИ ОДНОВРЕМЕННО</span>
+        <h2 class="rblx-text" style="font-size: 1.15rem; color: var(--neon-yellow);">МАГАЗИН СКИНОВ</h2>
+        <p id="shop-msg" style="font-size: 0.76rem; color: #cbd5e1; font-weight: 700;">Все 6 категорий можно надевать на аватар одновременно!</p>
+        <div style="display: flex; gap: 6px; margin-top: 4px; flex-wrap: wrap;">
+          <button id="btn-shop-back" class="rblx-btn btn-slate" style="padding: 6px 12px; font-size: 0.76rem; border-radius: 10px;" onclick="returnFromOverlay()">⬅ В МЕНЮ</button>
+          <button class="rblx-btn btn-blue" style="padding: 6px 12px; font-size: 0.76rem; border-radius: 10px;" onclick="openProfileEditor()">✏️ ВНЕШНОСТЬ</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="shop-tabs">
+      <button id="tab-hair" class="rblx-btn btn-blue tab-btn" onclick="switchShopTab('hair')"><span>💇</span><span>ПАРИКИ</span></button>
+      <button id="tab-top" class="rblx-btn btn-slate tab-btn" onclick="switchShopTab('top')"><span>👚</span><span>ОДЕЖДА</span></button>
+      <button id="tab-hat" class="rblx-btn btn-slate tab-btn" onclick="switchShopTab('hat')"><span>👑</span><span>ШАПКИ</span></button>
+      <button id="tab-glasses" class="rblx-btn btn-slate tab-btn" onclick="switchShopTab('glasses')"><span>🕶️</span><span>ОЧКИ</span></button>
+      <button id="tab-pet" class="rblx-btn btn-slate tab-btn" onclick="switchShopTab('pet')"><span>🐾</span><span>ПИТОМЦЫ</span></button>
+      <button id="tab-back" class="rblx-btn btn-slate tab-btn" onclick="switchShopTab('back')"><span>🪽</span><span>КРЫЛЬЯ</span></button>
+    </div>
+
+    <div id="shop-items-grid" class="shop-items-grid glass-panel"></div>
+  </div>
+
+  <!-- Экран журнала тренировок (Архив заданий и разбор допущенных ошибок) -->
+  <div id="archive-screen">
+    <div class="archive-header-panel glass-panel">
+      <div class="archive-top-row">
+        <div>
+          <span class="school-badge">📋 ЖУРНАЛ ТРЕНИРОВОК И РАБОТА НАД ОШИБКАМИ</span>
+          <h2 class="rblx-text" style="font-size: 1.12rem; color: var(--neon-yellow); margin-top: 3px;">АРХИВ ЗАДАНИЙ И ОТВЕТОВ</h2>
+        </div>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+          <button id="btn-clear-archive" class="rblx-btn btn-red" style="padding: 6px 10px; font-size: 0.72rem; border-radius: 10px;" onclick="handleClearArchiveClick()">🗑️ ОЧИСТИТЬ</button>
+          <button id="btn-archive-back" class="rblx-btn btn-slate" style="padding: 6px 12px; font-size: 0.75rem; border-radius: 10px;" onclick="returnFromOverlay()">⬅ В МЕНЮ</button>
+        </div>
+      </div>
+
+      <div class="archive-stats-grid">
+        <div class="archive-stat-box">
+          <div id="arch-stat-total" class="archive-stat-num" style="color: var(--neon-blue);">0</div>
+          <div class="archive-stat-lbl">Всего заданий</div>
+        </div>
+        <div class="archive-stat-box">
+          <div id="arch-stat-flawless" class="archive-stat-num" style="color: var(--neon-green);">0</div>
+          <div class="archive-stat-lbl">Без ошибок</div>
+        </div>
+        <div class="archive-stat-box">
+          <div id="arch-stat-corrected" class="archive-stat-num" style="color: var(--neon-yellow);">0</div>
+          <div class="archive-stat-lbl">Исправлено</div>
+        </div>
+        <div class="archive-stat-box">
+          <div id="arch-stat-failed" class="archive-stat-num" style="color: #ff8a80;">0</div>
+          <div class="archive-stat-lbl">Не решено</div>
+        </div>
+      </div>
+
+      <div id="archive-filters" class="archive-filters-row"></div>
+    </div>
+
+    <div id="archive-list" class="archive-list-scroll glass-panel"></div>
+  </div>
+
+  <!-- Игровой экран: прогресс-бар, жизни, подсказка, рабочая область и цифровая панель -->
+  <div id="game-screen">
+    <div class="status-row">
+      <div class="progress-wrap">
+        <div id="progress-fill" class="progress-fill"></div>
+        <div id="progress-label" class="progress-label">ЗАДАНИЕ 1 / 5</div>
+      </div>
+      <div id="hearts-box" class="hearts-box" title="Только 1 право на ошибку! При 2-й ошибке этап провален!"></div>
+    </div>
+
+    <div id="blitz-timer-wrap" class="blitz-timer-wrap">
+      <div id="blitz-timer-bar" class="blitz-timer-bar"></div>
+    </div>
+
+    <div class="board-container glass-panel">
+      <div class="helper-bar">
+        <div class="helper-left">
+          <div id="game-avatar" class="helper-avatar"></div>
+          <div style="display:flex; flex-direction:column; gap:2px; min-width:0; flex:1;">
+            <div id="game-feedback" class="hint-text" style="color:#94a3b8;">🔒 Подсказки скрыты. Решай самостоятельно!</div>
+            <div id="status-banner" class="hint-text" style="display: none; color: var(--neon-green);"></div>
+          </div>
+        </div>
+        <button id="btn-buy-hint" class="rblx-btn btn-orange paid-hint-btn" onclick="buyRoundHint()">
+          💡 ПОДСКАЗКА (15 R$)
+        </button>
+      </div>
+      <div id="workspace" class="workspace"></div>
+    </div>
+
+    <div class="numpad glass-panel">
+      <button class="rblx-btn btn-blue num-key" onclick="handleDigitInput(1)">1</button>
+      <button class="rblx-btn btn-blue num-key" onclick="handleDigitInput(2)">2</button>
+      <button class="rblx-btn btn-blue num-key" onclick="handleDigitInput(3)">3</button>
+      <button class="rblx-btn btn-blue num-key" onclick="handleDigitInput(4)">4</button>
+      <button class="rblx-btn btn-blue num-key" onclick="handleDigitInput(5)">5</button>
+      <button class="rblx-btn btn-blue num-key" onclick="handleDigitInput(6)">6</button>
+      <button class="rblx-btn btn-blue num-key" onclick="handleDigitInput(7)">7</button>
+      <button class="rblx-btn btn-blue num-key" onclick="handleDigitInput(8)">8</button>
+      <button class="rblx-btn btn-blue num-key" onclick="handleDigitInput(9)">9</button>
+      <button class="rblx-btn btn-blue num-key" onclick="handleDigitInput(0)">0</button>
+    </div>
+  </div>
+
+  <!-- Модальное окно итогов раунда (победа / поражение) -->
+  <div id="result-modal" class="modal-backdrop">
+    <div id="modal-box" class="modal-box glass-panel">
+      <div id="modal-avatar" style="width: 84px; height: 92px; margin: 0 auto;"></div>
+      <h2 id="modal-title" class="rblx-text" style="font-size: 1.75rem; color: var(--neon-green);">РАУНД ЗАВЕРШЁН!</h2>
+      <p id="modal-subtitle" style="font-weight: 700; color: #e2e8f0; font-size: 0.85rem;">Тренировка завершена!</p>
+      
+      <div class="reward-row">
+        <div class="reward-card">
+          <div style="font-size: 0.72rem; color: #94a3b8;">ИТОГ РАУНДА</div>
+          <div id="modal-robux" class="reward-val rblx-text">+0 R$</div>
+        </div>
+        <div class="reward-card">
+          <div style="font-size: 0.72rem; color: #94a3b8;">ЛУЧШЕЕ КОМБО</div>
+          <div id="modal-streak" class="reward-val rblx-text">🔥 0</div>
+        </div>
+      </div>
+
+      <div class="modal-buttons-row" style="display: flex; gap: 6px; margin-top: 4px; flex-wrap: wrap;">
+        <button class="rblx-btn btn-slate" style="flex: 1; padding: 10px 8px; font-size: 0.76rem;" onclick="goToMenu()">В МЕНЮ</button>
+        <button class="rblx-btn btn-purple" style="flex: 1; padding: 10px 8px; font-size: 0.76rem;" onclick="openArchive()">📋 АРХИВ</button>
+        <button class="rblx-btn btn-pink" style="flex: 1; padding: 10px 8px; font-size: 0.76rem;" onclick="openShop()">🛍️ МАГАЗИН</button>
+        <button id="modal-retry-btn" class="rblx-btn btn-green" style="flex: 1.2; padding: 10px 8px; font-size: 0.76rem;" onclick="restartBlock()">ЗАНОВО</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  /**
+   * ============================================================================
+   * МОДУЛЬ 1. СПРАВОЧНИКИ КАСТОМИЗАЦИИ И МАГАЗИНА СКИНОВ
+   * ============================================================================
+   */
+  const SKIN_TONES = [
+    { id: '#ffe0bd', name: 'Светлый' },
+    { id: '#ffcc99', name: 'Персиковый' },
+    { id: '#eab676', name: 'Загорелый' },
+    { id: '#c68642', name: 'Карамельный' },
+    { id: '#8d5524', name: 'Тёмный' }
+  ];
+
+  const BASE_HAIR_STYLES = [
+    { id: 'none', name: 'Без волос (Лысый)' },
+    { id: 'short', name: 'Короткая стрижка' },
+    { id: 'spiky', name: 'Крутой ёжик' },
+    { id: 'pigtails', name: 'Хвостики' },
+    { id: 'long', name: 'Длинные локоны' }
+  ];
+
+  const BASE_HAIR_COLORS = [
+    { id: '#6d4c41', name: 'Каштановый' },
+    { id: '#ffd54f', name: 'Блонд' },
+    { id: '#1e293b', name: 'Чёрный' },
+    { id: '#e65100', name: 'Рыжий' },
+    { id: '#ff4081', name: 'Розовый' },
+    { id: '#00e5ff', name: 'Голубой' }
+  ];
+
+  const EYE_STYLES = [
+    { id: 'normal', name: 'Классические' },
+    { id: 'anime', name: 'Большие блестящие' },
+    { id: 'cool', name: 'Крутые (прищур)' },
+    { id: 'green', name: 'Изумрудные' },
+    { id: 'blue', name: 'Синие' }
+  ];
+
+  const SHOP_ITEMS = [
+    { id: 'hair_default', category: 'hair', name: 'Из настроек профиля', price: 0, icon: '👤' },
+    { id: 'hair_blonde', category: 'hair', name: 'Золотые локоны RBLX', price: 50, icon: '👱‍♀️' },
+    { id: 'hair_pink', category: 'hair', name: 'Розовый неон', price: 90, icon: '🌸' },
+    { id: 'hair_blue', category: 'hair', name: 'Кибер-бирюза', price: 120, icon: '💎' },
+    { id: 'hair_violet', category: 'hair', name: 'Фиолетовый космос', price: 150, icon: '🔮' },
+    { id: 'hair_rainbow', category: 'hair', name: 'Радужный парик VIP', price: 220, icon: '🌈' },
+
+    { id: 'top_school', category: 'top', name: 'Школьная форма', price: 0, icon: '🎽' },
+    { id: 'top_hoodie', category: 'top', name: 'Худи с котиком', price: 65, icon: '👚' },
+    { id: 'top_sport', category: 'top', name: 'Спорт-куртка класса', price: 95, icon: '🏃' },
+    { id: 'top_neon', category: 'top', name: 'Неоновая броня', price: 140, icon: '🧥' },
+    { id: 'top_witch', category: 'top', name: 'Костюм Ведьмы', price: 160, icon: '🧙‍♀️' },
+    { id: 'top_princess', category: 'top', name: 'Звёздный наряд', price: 180, icon: '👗' },
+    { id: 'top_dracula', category: 'top', name: 'Костюм Дракулы', price: 195, icon: '🧛' },
+    { id: 'top_batman', category: 'top', name: 'Костюм Бэтмена', price: 230, icon: '🦇' },
+    { id: 'top_spiderman', category: 'top', name: 'Костюм Человека-паука', price: 240, icon: '🕸️' },
+    { id: 'top_gold', category: 'top', name: 'Золотой VIP-сет', price: 260, icon: '✨' },
+
+    { id: 'hat_none', category: 'hat', name: 'Без шапки', price: 0, icon: '➖' },
+    { id: 'hat_bow', category: 'hat', name: 'Бант Отличника', price: 45, icon: '🎀' },
+    { id: 'hat_cap', category: 'hat', name: 'Кепка Roblox', price: 75, icon: '🧢' },
+    { id: 'hat_headphones', category: 'hat', name: 'Геймерские наушники', price: 110, icon: '🎧' },
+    { id: 'hat_cat', category: 'hat', name: 'Светящиеся ушки', price: 145, icon: '🐱' },
+    { id: 'hat_crown', category: 'hat', name: 'Золотая Корона', price: 210, icon: '👑' },
+
+    { id: 'gls_none', category: 'glasses', name: 'По умолчанию профиля', price: 0, icon: '😊' },
+    { id: 'gls_smart', category: 'glasses', name: 'Неоновые очки', price: 50, icon: '👓' },
+    { id: 'gls_sun', category: 'glasses', name: 'Солнцезащитные очки', price: 70, icon: '🕶️' },
+    { id: 'gls_hearts', category: 'glasses', name: 'Розовые сердечки', price: 85, icon: '💖' },
+    { id: 'gls_star', category: 'glasses', name: 'Звёздные очки', price: 115, icon: '🤩' },
+    { id: 'gls_visor', category: 'glasses', name: 'Лазерный Кибер-Визор', price: 170, icon: '🥽' },
+
+    { id: 'pet_none', category: 'pet', name: 'Без питомца', price: 0, icon: '➖' },
+    { id: 'pet_cat', category: 'pet', name: 'Рыжий Котик Мурзик', price: 95, icon: '🐈' },
+    { id: 'pet_owl', category: 'pet', name: 'Учёная Сова', price: 135, icon: '🦉' },
+    { id: 'pet_raven', category: 'pet', name: 'Мудрый Ворон', price: 150, icon: '🐦‍⬛' },
+    { id: 'pet_bunny', category: 'pet', name: 'Белый Зайка', price: 165, icon: '🐰' },
+    { id: 'pet_bat', category: 'pet', name: 'Летучая мышь', price: 185, icon: '🦇' },
+    { id: 'pet_spider', category: 'pet', name: 'Паук-крестовик', price: 210, icon: '🕷️' },
+    { id: 'pet_dragon', category: 'pet', name: 'Неоновый Дракончик', price: 250, icon: '🐉' },
+
+    { id: 'back_none', category: 'back', name: 'Без спинного слота', price: 0, icon: '➖' },
+    { id: 'back_bag', category: 'back', name: 'Школьный ранец', price: 60, icon: '🎒' },
+    { id: 'back_cape', category: 'back', name: 'Плащ Супер-Математика', price: 125, icon: '🦸' },
+    { id: 'back_wings', category: 'back', name: 'Крылья Ангела RBLX', price: 195, icon: '🪽' },
+    { id: 'back_bat_wings', category: 'back', name: 'Крылья Летучей мыши', price: 215, icon: '🦇' },
+    { id: 'back_raven_wings', category: 'back', name: 'Крылья Ворона', price: 235, icon: '🐦‍⬛' },
+    { id: 'back_dragon_wings', category: 'back', name: 'Крылья Дракона', price: 260, icon: '🐲' },
+    { id: 'back_aura', category: 'back', name: 'Огненная VIP-Аура', price: 290, icon: '🔥' }
+  ];
+
+  const BLOCK_TITLES = {
+    1: 'Блок 1 • Сложение и вычитание',
+    2: 'Блок 2 • Порядок действий',
+    3: 'Блок 3 • Умножение и деление',
+    4: 'Блок 4 • Блиц на скорость',
+    5: 'Блок 5 • Текстовые задачи'
+  };
+
+  let currentShopTab = 'hair';
+  let archiveFilter = 'all';
+  let clearArchiveConfirm = false;
+  let clearArchiveTimeout = null;
+
+  /**
+   * Форматирует номер/букву класса в именительном падеже (например: «4 класс»).
+   * @param {string|number} rawGrade - Введённое значение класса.
+   * @returns {string}
+   */
+  function formatGradeText(rawGrade) {
+    const g = String(rawGrade || '4').replace(/класса?/gi, '').trim() || '4';
+    return `${g} класс`;
+  }
+
+  function formatGradeGenitive(rawGrade) {
+    const g = String(rawGrade || '4').replace(/класса?/gi, '').trim() || '4';
+    return `${g} класса`;
+  }
+
+  function pluralizeRu(num, forms) {
+    const n = Math.abs(num) % 100;
+    const n1 = n % 10;
+    if (n > 10 && n < 20) return forms[2];
+    if (n1 > 1 && n1 < 5) return forms[1];
+    if (n1 === 1) return forms[0];
+    return forms[2];
+  }
+
+  function escapeHTML(str) {
+    return String(str ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  /**
+   * ============================================================================
+   * МОДУЛЬ 2. ГЕНЕРАТОР ВЕКТОРНОГО АВАТАРА (SVG)
+   * Собирает многослойное изображение героя из базовых параметров профиля
+   * и всех 6 одновременно надетых слотов магазина (back, hair, top, eyes, glasses, hat, pet).
+   * ============================================================================
+   * @param {string} uid - Уникальный суффикс для ID SVG-градиентов.
+   * @returns {string} Готовая SVG-разметка персонажа.
+   */
+  function buildHeroSVG(uid = 'av') {
+    const eq = state.equipped;
+    const prof = state.profile;
+    const skinColor = prof.skinColor || '#ffcc99';
+    const rainbowId = `rainbowGrad_${uid}`;
+    const goldId = `goldGrad_${uid}`;
+
+    let backSVG = '';
+    if (eq.back === 'back_bag') {
+      backSVG = `<rect x="24" y="64" width="72" height="46" rx="10" fill="#ff4081" stroke="#000" stroke-width="3"/>`;
+    } else if (eq.back === 'back_cape') {
+      backSVG = `<polygon points="34,70 86,70 104,124 16,124" fill="#d500f9" stroke="#000" stroke-width="3"/>`;
+    } else if (eq.back === 'back_wings') {
+      backSVG = `
+        <path d="M 34 80 Q 4 50 10 92 Q 18 110 34 102 Z" fill="#00e5ff" stroke="#000" stroke-width="3"/>
+        <path d="M 86 80 Q 116 50 110 92 Q 102 110 86 102 Z" fill="#00e5ff" stroke="#000" stroke-width="3"/>
+      `;
+    } else if (eq.back === 'back_bat_wings') {
+      backSVG = `
+        <path d="M 35 76 L 16 50 L 12 58 L 2 62 L 6 88 Q 14 78 20 94 Q 26 84 35 98 Z" fill="#311b92" stroke="#000" stroke-width="2.8" stroke-linejoin="round"/>
+        <path d="M 16 54 L 20 88 M 16 54 L 8 82" stroke="#7c4dff" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M 85 76 L 104 50 L 108 58 L 118 62 L 114 88 Q 106 78 100 94 Q 94 84 85 98 Z" fill="#311b92" stroke="#000" stroke-width="2.8" stroke-linejoin="round"/>
+        <path d="M 104 54 L 100 88 M 104 54 L 112 82" stroke="#7c4dff" stroke-width="1.8" stroke-linecap="round"/>
+      `;
+    } else if (eq.back === 'back_dragon_wings') {
+      backSVG = `
+        <path d="M 35 78 L 14 44 L 8 54 L 1 56 L 5 88 Q 14 78 21 96 Q 28 86 35 100 Z" fill="#ff6d00" stroke="#000" stroke-width="2.8" stroke-linejoin="round"/>
+        <path d="M 35 78 L 14 44 L 4 64" fill="none" stroke="#00c853" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M 14 48 L 21 92 M 14 48 L 7 84" stroke="#ffea00" stroke-width="2" stroke-linecap="round"/>
+        <path d="M 85 78 L 106 44 L 112 54 L 119 56 L 115 88 Q 106 78 99 96 Q 92 86 85 100 Z" fill="#ff6d00" stroke="#000" stroke-width="2.8" stroke-linejoin="round"/>
+        <path d="M 85 78 L 106 44 L 116 64" fill="none" stroke="#00c853" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M 106 48 L 99 92 M 106 48 L 113 84" stroke="#ffea00" stroke-width="2" stroke-linecap="round"/>
+      `;
+    } else if (eq.back === 'back_raven_wings') {
+      backSVG = `
+        <path d="M 35 74 Q 10 48 2 66 Q 12 72 4 82 Q 15 86 8 96 Q 22 98 35 102 Z" fill="#0f172a" stroke="#000" stroke-width="2.8" stroke-linejoin="round"/>
+        <path d="M 33 80 Q 16 68 8 74 M 33 86 Q 18 80 11 88" fill="none" stroke="#38bdf8" stroke-width="1.6" stroke-linecap="round" opacity="0.75"/>
+        <path d="M 85 74 Q 110 48 118 66 Q 108 72 116 82 Q 105 86 112 96 Q 98 98 85 102 Z" fill="#0f172a" stroke="#000" stroke-width="2.8" stroke-linejoin="round"/>
+        <path d="M 87 80 Q 104 68 112 74 M 87 86 Q 102 80 109 88" fill="none" stroke="#38bdf8" stroke-width="1.6" stroke-linecap="round" opacity="0.75"/>
+      `;
+    } else if (eq.back === 'back_aura') {
+      backSVG = `
+        <circle cx="60" cy="66" r="52" fill="rgba(255,234,0,0.18)" stroke="#ffea00" stroke-width="3" stroke-dasharray="6 4"/>
+        <circle cx="60" cy="66" r="44" fill="none" stroke="#ff4081" stroke-width="2.5" stroke-dasharray="4 4"/>
+      `;
+    }
+
+    let hairFill = prof.hairColor || '#6d4c41';
+    let hairStyle = prof.hairStyle || 'short';
+
+    if (eq.hair && eq.hair !== 'hair_default') {
+      const shopHairColors = {
+        hair_blonde: '#ffd54f',
+        hair_pink: '#ff4081',
+        hair_blue: '#00e5ff',
+        hair_violet: '#aa00ff',
+        hair_rainbow: `url(#${rainbowId})`
+      };
+      hairFill = shopHairColors[eq.hair] || hairFill;
+      if (hairStyle === 'none') hairStyle = prof.gender === 'male' ? 'spiky' : 'pigtails';
+    }
+
+    let hairBackSVG = '';
+    let hairFrontSVG = '';
+
+    if (hairStyle === 'pigtails') {
+      hairBackSVG = `
+        <rect x="14" y="28" width="14" height="32" rx="6" fill="${hairFill}" stroke="#000" stroke-width="3"/>
+        <rect x="92" y="28" width="14" height="32" rx="6" fill="${hairFill}" stroke="#000" stroke-width="3"/>
+        <circle cx="24" cy="28" r="5.5" fill="#ff4081" stroke="#000" stroke-width="2.5"/>
+        <circle cx="96" cy="28" r="5.5" fill="#ff4081" stroke="#000" stroke-width="2.5"/>
+      `;
+      hairFrontSVG = `<path d="M 30 30 Q 60 18 90 30 L 90 24 Q 90 14 78 14 L 42 14 Q 30 14 30 24 Z" fill="${hairFill}" stroke="#000" stroke-width="3"/>`;
+    } else if (hairStyle === 'long') {
+      hairBackSVG = `<rect x="20" y="22" width="80" height="58" rx="14" fill="${hairFill}" stroke="#000" stroke-width="3"/>`;
+      hairFrontSVG = `<path d="M 30 32 Q 60 20 90 32 L 90 24 Q 90 14 78 14 L 42 14 Q 30 14 30 24 Z" fill="${hairFill}" stroke="#000" stroke-width="3"/>`;
+    } else if (hairStyle === 'short') {
+      hairFrontSVG = `<path d="M 28 28 Q 60 22 92 28 L 92 22 Q 92 12 78 12 L 42 12 Q 28 12 28 22 Z" fill="${hairFill}" stroke="#000" stroke-width="3"/>`;
+    } else if (hairStyle === 'spiky') {
+      hairFrontSVG = `<polygon points="28,26 36,8 48,18 60,6 72,18 84,8 92,26" fill="${hairFill}" stroke="#000" stroke-width="3" stroke-linejoin="round"/>`;
+    }
+
+    const schoolTag = escapeHTML((prof.school || 'MATH').slice(0, 4));
+    const gradeTag = escapeHTML((prof.grade || '4').slice(0, 4));
+
+    let torsoFill = '#1e3a8a';
+    let sleeveFill = '#ffffff';
+    let topDecor = `
+      <polygon points="48,70 60,84 72,70" fill="#ffffff" stroke="#000" stroke-width="2.5"/>
+      <polygon points="57,76 63,76 64,96 60,101 56,96" fill="#ff1744" stroke="#000" stroke-width="2"/>
+      <rect x="62" y="84" width="21" height="11" rx="3" fill="#ffea00" stroke="#000" stroke-width="1.8"/>
+      <text x="72.5" y="92" font-size="6.5" font-weight="900" fill="#000" text-anchor="middle">${schoolTag}</text>
+    `;
+
+    if (eq.top === 'top_hoodie') {
+      torsoFill = '#ff4081'; sleeveFill = '#f50057';
+      topDecor = `
+        <circle cx="60" cy="91" r="10" fill="#fff" stroke="#000" stroke-width="2.5"/>
+        <circle cx="57" cy="90" r="1.8" fill="#000"/><circle cx="63" cy="90" r="1.8" fill="#000"/>
+      `;
+    } else if (eq.top === 'top_sport') {
+      torsoFill = '#00c853'; sleeveFill = '#ffffff';
+      topDecor = `
+        <rect x="42" y="82" width="36" height="14" rx="4" fill="#ffea00" stroke="#000" stroke-width="2"/>
+        <text x="60" y="92" font-size="8.5" font-weight="900" fill="#000" text-anchor="middle">${gradeTag}</text>
+      `;
+    } else if (eq.top === 'top_neon') {
+      torsoFill = '#111827'; sleeveFill = '#00e5ff';
+      topDecor = `
+        <line x1="60" y1="70" x2="60" y2="115" stroke="#00e5ff" stroke-width="4"/>
+        <rect x="38" y="80" width="16" height="11" rx="3" fill="#00e676" stroke="#000" stroke-width="1.8"/>
+        <text x="46" y="88" font-size="6.8" font-weight="900" fill="#000" text-anchor="middle">${gradeTag}</text>
+      `;
+    } else if (eq.top === 'top_princess') {
+      torsoFill = '#d500f9'; sleeveFill = '#ff80ab';
+      topDecor = `<polygon points="60,78 66,90 54,90" fill="#ffea00" stroke="#000" stroke-width="2"/>`;
+    } else if (eq.top === 'top_witch') {
+      torsoFill = '#311b92'; sleeveFill = '#6a1b9a';
+      topDecor = `
+        <polygon points="36,70 48,79 60,72 72,79 84,70" fill="#4a148c" stroke="#00e676" stroke-width="2"/>
+        <line x1="54" y1="78" x2="66" y2="85" stroke="#ffea00" stroke-width="2"/>
+        <line x1="66" y1="78" x2="54" y2="85" stroke="#ffea00" stroke-width="2"/>
+        <rect x="34" y="102" width="52" height="8" fill="#111827" stroke="#000" stroke-width="2"/>
+        <rect x="54" y="100" width="12" height="11" rx="2" fill="#ffd700" stroke="#000" stroke-width="2"/>
+      `;
+    } else if (eq.top === 'top_dracula') {
+      torsoFill = '#18181b'; sleeveFill = '#991b1b';
+      topDecor = `
+        <polygon points="34,70 45,60 53,78" fill="#dc2626" stroke="#000" stroke-width="2.2"/>
+        <polygon points="86,70 75,60 67,78" fill="#dc2626" stroke="#000" stroke-width="2.2"/>
+        <polygon points="48,70 60,98 72,70" fill="#dc2626" stroke="#000" stroke-width="2"/>
+        <line x1="60" y1="78" x2="60" y2="115" stroke="#000" stroke-width="2.2"/>
+        <circle cx="60" cy="79" r="4.5" fill="#ffd700" stroke="#000" stroke-width="2"/>
+        <circle cx="60" cy="79" r="2" fill="#ff1744"/>
+      `;
+    } else if (eq.top === 'top_batman') {
+      torsoFill = '#1e293b'; sleeveFill = '#0f172a';
+      topDecor = `
+        <ellipse cx="60" cy="84" rx="15" ry="7.5" fill="#ffea00" stroke="#000" stroke-width="2.2"/>
+        <path d="M 48 84 Q 54 79 58 83 L 60 79 L 62 83 Q 66 79 72 84 Q 66 89 60 87 Q 54 89 48 84 Z" fill="#000"/>
+        <rect x="34" y="104" width="52" height="7" fill="#ffea00" stroke="#000" stroke-width="2"/>
+        <rect x="55" y="103" width="10" height="9" rx="1.5" fill="#f59e0b" stroke="#000" stroke-width="2"/>
+      `;
+    } else if (eq.top === 'top_spiderman') {
+      torsoFill = '#dc2626'; sleeveFill = '#1d4ed8';
+      topDecor = `
+        <path d="M 34 74 L 44 118 L 34 118 Z" fill="#1d4ed8" stroke="#000" stroke-width="2"/>
+        <path d="M 86 74 L 76 118 L 86 118 Z" fill="#1d4ed8" stroke="#000" stroke-width="2"/>
+        <line x1="60" y1="70" x2="60" y2="118" stroke="#000" stroke-width="1.6" opacity="0.65"/>
+        <line x1="42" y1="70" x2="78" y2="110" stroke="#000" stroke-width="1.4" opacity="0.55"/>
+        <line x1="78" y1="70" x2="42" y2="110" stroke="#000" stroke-width="1.4" opacity="0.55"/>
+        <ellipse cx="60" cy="88" rx="4" ry="6" fill="#000"/>
+        <circle cx="60" cy="81" r="2.6" fill="#000"/>
+        <path d="M 56 85 L 49 81 M 56 88 L 48 88 M 56 91 L 50 96 M 64 85 L 71 81 M 64 88 L 72 88 M 64 91 L 70 96" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+      `;
+    } else if (eq.top === 'top_gold') {
+      torsoFill = `url(#${goldId})`; sleeveFill = '#ffab00';
+      topDecor = `<polygon points="60,76 63,85 72,85 65,90 68,99 60,94 52,99 55,90 48,85 57,85" fill="#fff" stroke="#000" stroke-width="2"/>`;
+    }
+
+    let eyesSVG = '';
+    const eyeStyle = prof.eyes || 'normal';
+    if (eyeStyle === 'anime') {
+      eyesSVG = `
+        <circle cx="46" cy="42" r="5.5" fill="#000"/>
+        <circle cx="44" cy="40" r="2.2" fill="#fff"/>
+        <circle cx="74" cy="42" r="5.5" fill="#000"/>
+        <circle cx="72" cy="40" r="2.2" fill="#fff"/>
+      `;
+    } else if (eyeStyle === 'cool') {
+      eyesSVG = `
+        <line x1="40" y1="38" x2="52" y2="40" stroke="#000" stroke-width="3" stroke-linecap="round"/>
+        <line x1="68" y1="40" x2="80" y2="38" stroke="#000" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="46" cy="43" r="3.5" fill="#000"/>
+        <circle cx="74" cy="43" r="3.5" fill="#000"/>
+      `;
+    } else if (eyeStyle === 'green' || eyeStyle === 'blue') {
+      const irisColor = eyeStyle === 'green' ? '#00c853' : '#00b0ff';
+      eyesSVG = `
+        <circle cx="46" cy="42" r="4.8" fill="${irisColor}" stroke="#000" stroke-width="1.5"/>
+        <circle cx="46" cy="42" r="2.2" fill="#000"/>
+        <circle cx="74" cy="42" r="4.8" fill="${irisColor}" stroke="#000" stroke-width="1.5"/>
+        <circle cx="74" cy="42" r="2.2" fill="#000"/>
+      `;
+    } else {
+      eyesSVG = `
+        <circle cx="46" cy="42" r="4.2" fill="#000"/><circle cx="44.5" cy="40.5" r="1.5" fill="#fff"/>
+        <circle cx="74" cy="42" r="4.2" fill="#000"/><circle cx="72.5" cy="40.5" r="1.5" fill="#fff"/>
+      `;
+    }
+
+    let hatSVG = '';
+    if (eq.hat === 'hat_bow') {
+      hatSVG = `
+        <polygon points="44,6 60,14 44,22" fill="#ff1744" stroke="#000" stroke-width="2.5"/>
+        <polygon points="76,6 60,14 76,22" fill="#ff1744" stroke="#000" stroke-width="2.5"/>
+        <circle cx="60" cy="14" r="4.5" fill="#ffea00" stroke="#000" stroke-width="2"/>
+      `;
+    } else if (eq.hat === 'hat_cap') {
+      hatSVG = `
+        <path d="M 27 25 C 27 3, 93 3, 93 25 Z" fill="#e53935" stroke="#000" stroke-width="3" stroke-linejoin="round"/>
+        <path d="M 26 22 Q 60 19 94 22 L 94 26 Q 60 23 26 26 Z" fill="#b71c1c" stroke="#000" stroke-width="2.5"/>
+        <path d="M 44 22 Q 80 17 109 24 Q 112 30 96 31 Q 70 29 44 26 Z" fill="#1e293b" stroke="#000" stroke-width="2.8" stroke-linejoin="round"/>
+      `;
+    } else if (eq.hat === 'hat_headphones') {
+      hatSVG = `
+        <path d="M 26 42 C 24 4, 96 4, 94 42" fill="none" stroke="#1e293b" stroke-width="6.5" stroke-linecap="round"/>
+        <path d="M 28 40 C 26 7, 94 7, 92 40" fill="none" stroke="#00e5ff" stroke-width="2.8" stroke-linecap="round"/>
+        <rect x="19" y="30" width="12" height="22" rx="6" fill="#ff4081" stroke="#000" stroke-width="2.8"/>
+        <rect x="89" y="30" width="12" height="22" rx="6" fill="#ff4081" stroke="#000" stroke-width="2.8"/>
+        <circle cx="25" cy="41" r="3" fill="#00e5ff"/>
+        <circle cx="95" cy="41" r="3" fill="#00e5ff"/>
+      `;
+    } else if (eq.hat === 'hat_cat') {
+      hatSVG = `
+        <polygon points="31,20 35,2 50,15" fill="#1e293b" stroke="#000" stroke-width="2.8" stroke-linejoin="round"/>
+        <polygon points="35,17 37,6 46,15" fill="#ff4081"/>
+        <polygon points="89,20 85,2 70,15" fill="#1e293b" stroke="#000" stroke-width="2.8" stroke-linejoin="round"/>
+        <polygon points="85,17 83,6 74,15" fill="#00e5ff"/>
+      `;
+    } else if (eq.hat === 'hat_crown') {
+      hatSVG = `
+        <polygon points="38,16 45,2 60,12 75,2 82,16" fill="#ffd700" stroke="#000" stroke-width="3" stroke-linejoin="round"/>
+        <circle cx="60" cy="10" r="3" fill="#ff1744"/>
+      `;
+    }
+
+    let glassesSVG = '';
+    if (eq.glasses === 'gls_smart') {
+      glassesSVG = `
+        <rect x="36" y="36" width="20" height="13" rx="3" fill="rgba(0,229,255,0.28)" stroke="#000" stroke-width="3"/>
+        <rect x="64" y="36" width="20" height="13" rx="3" fill="rgba(0,229,255,0.28)" stroke="#000" stroke-width="3"/>
+        <line x1="56" y1="42" x2="64" y2="42" stroke="#000" stroke-width="3"/>
+      `;
+    } else if (eq.glasses === 'gls_sun') {
+      glassesSVG = `
+        <path d="M 34 36 L 57 36 L 55 48 Q 45 51 36 47 Z" fill="#0f172a" stroke="#000" stroke-width="2.8" stroke-linejoin="round"/>
+        <path d="M 63 36 L 86 36 L 84 47 Q 75 51 65 48 Z" fill="#0f172a" stroke="#000" stroke-width="2.8" stroke-linejoin="round"/>
+        <line x1="56" y1="38" x2="64" y2="38" stroke="#ffd700" stroke-width="3"/>
+      `;
+    } else if (eq.glasses === 'gls_hearts') {
+      glassesSVG = `
+        <path d="M 46 39 C 46 35, 37 34, 37 40 C 37 45, 46 48, 46 50 C 46 48, 55 45, 55 40 C 55 34, 46 35, 46 39 Z" fill="rgba(255,64,129,0.72)" stroke="#000" stroke-width="2.4" stroke-linejoin="round"/>
+        <path d="M 74 39 C 74 35, 65 34, 65 40 C 65 45, 74 48, 74 50 C 74 48, 83 45, 83 40 C 83 34, 74 35, 74 39 Z" fill="rgba(255,64,129,0.72)" stroke="#000" stroke-width="2.4" stroke-linejoin="round"/>
+        <line x1="55" y1="41" x2="65" y2="41" stroke="#ff4081" stroke-width="2.8"/>
+      `;
+    } else if (eq.glasses === 'gls_star') {
+      glassesSVG = `
+        <polygon points="46,32 48.8,38 55.5,38.8 50.5,43.2 51.8,49.8 46,46.4 40.2,49.8 41.5,43.2 36.5,38.8 43.2,38" fill="rgba(255,234,0,0.78)" stroke="#000" stroke-width="2.2" stroke-linejoin="round"/>
+        <polygon points="74,32 76.8,38 83.5,38.8 78.5,43.2 79.8,49.8 74,46.4 68.2,49.8 69.5,43.2 64.5,38.8 71.2,38" fill="rgba(255,234,0,0.78)" stroke="#000" stroke-width="2.2" stroke-linejoin="round"/>
+        <line x1="53" y1="41" x2="67" y2="41" stroke="#ffd700" stroke-width="2.8"/>
+      `;
+    } else if (eq.glasses === 'gls_visor') {
+      glassesSVG = `
+        <polygon points="32,35 88,35 85,48 64,48 60,44 56,48 35,48" fill="rgba(0,229,255,0.75)" stroke="#000" stroke-width="2.8" stroke-linejoin="round"/>
+        <line x1="36" y1="39" x2="84" y2="39" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" opacity="0.85"/>
+      `;
+    } else if ((!eq.glasses || eq.glasses === 'gls_none') && prof.baseGlasses) {
+      glassesSVG = `
+        <rect x="36" y="36" width="20" height="12" rx="3" fill="rgba(255,255,255,0.2)" stroke="#1e293b" stroke-width="2.8"/>
+        <rect x="64" y="36" width="20" height="12" rx="3" fill="rgba(255,255,255,0.2)" stroke="#1e293b" stroke-width="2.8"/>
+        <line x1="56" y1="42" x2="64" y2="42" stroke="#1e293b" stroke-width="2.8"/>
+      `;
+    }
+
+    let petSVG = '';
+    if (eq.pet === 'pet_cat') {
+      petSVG = `
+        <g transform="translate(82, 48)">
+          <circle cx="14" cy="14" r="11" fill="#ffb74d" stroke="#000" stroke-width="2.5"/>
+          <polygon points="5,8 7,0 13,5" fill="#ffb74d" stroke="#000" stroke-width="2"/>
+          <polygon points="23,8 21,0 15,5" fill="#ffb74d" stroke="#000" stroke-width="2"/>
+          <circle cx="10.5" cy="13" r="1.8" fill="#000"/>
+          <circle cx="17.5" cy="13" r="1.8" fill="#000"/>
+          <polygon points="12.5,16 15.5,16 14,18" fill="#ff4081"/>
+        </g>`;
+    } else if (eq.pet === 'pet_owl') {
+      petSVG = `
+        <g transform="translate(81, 45)">
+          <ellipse cx="14" cy="15" rx="11" ry="12" fill="#8d6e63" stroke="#000" stroke-width="2.5"/>
+          <polygon points="5,7 3,1 10,5" fill="#5d4037" stroke="#000" stroke-width="2"/>
+          <polygon points="23,7 25,1 18,5" fill="#5d4037" stroke="#000" stroke-width="2"/>
+          <circle cx="10" cy="13" r="4" fill="#fff" stroke="#000" stroke-width="1.8"/>
+          <circle cx="18" cy="13" r="4" fill="#fff" stroke="#000" stroke-width="1.8"/>
+          <circle cx="10" cy="13" r="1.8" fill="#000"/>
+          <circle cx="18" cy="13" r="1.8" fill="#000"/>
+          <polygon points="12.5,16 15.5,16 14,20" fill="#ffab00" stroke="#000" stroke-width="1.5"/>
+        </g>`;
+    } else if (eq.pet === 'pet_raven') {
+      petSVG = `
+        <g transform="translate(81, 46)">
+          <ellipse cx="14" cy="15" rx="10.5" ry="11.5" fill="#1e293b" stroke="#000" stroke-width="2.5"/>
+          <path d="M 8 7 Q 14 2 18 7" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="11" cy="12.5" r="2.2" fill="#00e5ff"/>
+          <circle cx="17.5" cy="12.5" r="2.2" fill="#00e5ff"/>
+          <polygon points="11,15 19,16 13,21" fill="#f59e0b" stroke="#000" stroke-width="1.8" stroke-linejoin="round"/>
+        </g>`;
+    } else if (eq.pet === 'pet_bunny') {
+      petSVG = `
+        <g transform="translate(82, 42)">
+          <rect x="6" y="0" width="6" height="14" rx="3" fill="#ffffff" stroke="#000" stroke-width="2.2"/>
+          <rect x="7.5" y="2.5" width="3" height="9" rx="1.5" fill="#ff80ab"/>
+          <rect x="16" y="0" width="6" height="14" rx="3" fill="#ffffff" stroke="#000" stroke-width="2.2"/>
+          <rect x="17.5" y="2.5" width="3" height="9" rx="1.5" fill="#ff80ab"/>
+          <circle cx="14" cy="18" r="10.5" fill="#ffffff" stroke="#000" stroke-width="2.5"/>
+          <circle cx="10.5" cy="16.5" r="1.8" fill="#ff1744"/>
+          <circle cx="17.5" cy="16.5" r="1.8" fill="#ff1744"/>
+          <ellipse cx="14" cy="19.5" rx="2" ry="1.4" fill="#ff80ab"/>
+        </g>`;
+    } else if (eq.pet === 'pet_bat') {
+      petSVG = `
+        <g transform="translate(76, 45)">
+          <path d="M 10 14 Q 0 6 2 19 Q 6 16 10 20 Z" fill="#4a148c" stroke="#000" stroke-width="2"/>
+          <path d="M 28 14 Q 38 6 36 19 Q 32 16 28 20 Z" fill="#4a148c" stroke="#000" stroke-width="2"/>
+          <circle cx="19" cy="15" r="9.5" fill="#311b92" stroke="#000" stroke-width="2.4"/>
+          <polygon points="12,8 14,1 17,7" fill="#311b92" stroke="#000" stroke-width="2"/>
+          <polygon points="26,8 24,1 21,7" fill="#311b92" stroke="#000" stroke-width="2"/>
+          <circle cx="15.5" cy="14" r="2" fill="#ffea00"/>
+          <circle cx="22.5" cy="14" r="2" fill="#ffea00"/>
+          <polygon points="16.5,18 18,21 19,18" fill="#fff"/>
+          <polygon points="19.5,18 21,21 22,18" fill="#fff"/>
+        </g>`;
+    } else if (eq.pet === 'pet_spider') {
+      petSVG = `
+        <g transform="translate(80, 44)">
+          <line x1="16" y1="-12" x2="16" y2="8" stroke="#cbd5e1" stroke-width="1.6" stroke-dasharray="2 2"/>
+          <path d="M 8 13 L 1 9 M 7 16 L 0 16 M 8 19 L 1 23 M 24 13 L 31 9 M 25 16 L 32 16 M 24 19 L 31 23" stroke="#000" stroke-width="2.4" stroke-linecap="round"/>
+          <circle cx="16" cy="16" r="9.5" fill="#1e293b" stroke="#000" stroke-width="2.4"/>
+          <line x1="16" y1="9.5" x2="16" y2="17.5" stroke="#ff1744" stroke-width="2.4" stroke-linecap="round"/>
+          <line x1="12.5" y1="13" x2="19.5" y2="13" stroke="#ff1744" stroke-width="2.4" stroke-linecap="round"/>
+          <circle cx="13" cy="19.5" r="1.8" fill="#ff1744"/>
+          <circle cx="19" cy="19.5" r="1.8" fill="#ff1744"/>
+        </g>`;
+    } else if (eq.pet === 'pet_dragon') {
+      petSVG = `
+        <g transform="translate(80, 45)">
+          <polygon points="2,12 10,2 14,10" fill="#00e676" stroke="#000" stroke-width="2"/>
+          <polygon points="26,12 18,2 14,10" fill="#00e676" stroke="#000" stroke-width="2"/>
+          <rect x="4" y="8" width="20" height="18" rx="6" fill="#00e5ff" stroke="#000" stroke-width="2.5"/>
+          <circle cx="10.5" cy="15" r="2" fill="#ffea00" stroke="#000" stroke-width="1.2"/>
+          <circle cx="17.5" cy="15" r="2" fill="#ffea00" stroke="#000" stroke-width="1.2"/>
+          <path d="M 10 21 Q 14 23 18 21" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+        </g>`;
+    }
+
+    return `
+      <svg viewBox="0 0 120 130" width="100%" height="100%">
+        <defs>
+          <linearGradient id="${rainbowId}" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#ff1744"/>
+            <stop offset="50%" stop-color="#ffea00"/>
+            <stop offset="100%" stop-color="#00e5ff"/>
+          </linearGradient>
+          <linearGradient id="${goldId}" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#fff59d"/>
+            <stop offset="50%" stop-color="#ffd700"/>
+            <stop offset="100%" stop-color="#ff8f00"/>
+          </linearGradient>
+        </defs>
+        ${backSVG}
+        ${hairBackSVG}
+        <rect x="16" y="72" width="18" height="38" rx="6" fill="${sleeveFill}" stroke="#000" stroke-width="3.2"/>
+        <rect x="86" y="72" width="18" height="38" rx="6" fill="${sleeveFill}" stroke="#000" stroke-width="3.2"/>
+        <circle cx="25" cy="112" r="7" fill="${skinColor}" stroke="#000" stroke-width="3"/>
+        <circle cx="95" cy="112" r="7" fill="${skinColor}" stroke="#000" stroke-width="3"/>
+        <rect x="34" y="70" width="52" height="48" rx="8" fill="${torsoFill}" stroke="#000" stroke-width="3.5"/>
+        ${topDecor}
+        <rect x="30" y="16" width="60" height="52" rx="14" fill="${skinColor}" stroke="#000" stroke-width="3.5"/>
+        ${hairFrontSVG}
+        ${eyesSVG}
+        ${prof.gender === 'female' ? '<ellipse cx="39" cy="49" rx="4.5" ry="2.5" fill="#ff8a80" opacity="0.7"/><ellipse cx="81" cy="49" rx="4.5" ry="2.5" fill="#ff8a80" opacity="0.7"/>' : ''}
+        <path d="M 52 52 Q 60 60 68 52" fill="none" stroke="#000" stroke-width="3.2" stroke-linecap="round"/>
+        ${glassesSVG}
+        ${hatSVG}
+        ${petSVG}
+      </svg>
+    `;
+  }
+
+  function renderAllAvatars() {
+    ['hud-avatar', 'menu-avatar', 'shop-avatar', 'game-avatar', 'modal-avatar', 'profile-avatar'].forEach((id, idx) => {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = buildHeroSVG(`slot_${idx}`);
+    });
+
+    const fullName = `${state.profile.firstName || 'Ученик'} ${state.profile.lastName || ''}`.trim();
+    const gradeLabel = formatGradeText(state.profile.grade);
+    const schoolClean = (state.profile.school || '').trim();
+    const schoolStr = schoolClean ? `Школа ${schoolClean} • ${gradeLabel}` : `Математика • ${gradeLabel}`;
+    const badgeStr = schoolClean
+      ? `🏫 ШКОЛА ${schoolClean.toUpperCase()} • ${gradeLabel.toUpperCase()}`
+      : `🏫 ТРЕНАЖЁР • ${gradeLabel.toUpperCase()}`;
+
+    document.getElementById('hud-name').textContent = fullName;
+    document.getElementById('hud-school').textContent = schoolStr;
+    document.getElementById('menu-hero-name').textContent = fullName.toUpperCase();
+    document.getElementById('menu-school-badge').textContent = badgeStr;
+    const prevNameEl = document.getElementById('profile-preview-name');
+    if (prevNameEl) prevNameEl.textContent = fullName.toUpperCase();
+  }
+
+  /**
+   * ============================================================================
+   * МОДУЛЬ 3. ЗВУКОВОЙ ДВИЖОК (WEB AUDIO API)
+   * Синтезирует звуковые эффекты клика, верного ответа, ошибки, поражения и фанфар
+   * в реальном времени без загрузки внешних аудиофайлов.
+   * ============================================================================
+   */
+  let soundEnabled = true;
+  let audioCtx = null;
+
+  function initAudio() {
+    if (!audioCtx) {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AudioContext();
+    }
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  }
+
+  function playSound(type) {
+    if (!soundEnabled) return;
+    try {
+      initAudio();
+      const now = audioCtx.currentTime;
+      if (type === 'click') {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(520, now);
+        osc.frequency.exponentialRampToValueAtTime(220, now + 0.06);
+        gain.gain.setValueAtTime(0.18, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.06);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(now); osc.stop(now + 0.06);
+      } else if (type === 'correct') {
+        [587.33, 880].forEach((freq, i) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, now + i * 0.07);
+          gain.gain.setValueAtTime(0.22, now + i * 0.07);
+          gain.gain.exponentialRampToValueAtTime(0.008, now + i * 0.07 + 0.16);
+          osc.connect(gain); gain.connect(audioCtx.destination);
+          osc.start(now + i * 0.07); osc.stop(now + i * 0.07 + 0.16);
+        });
+      } else if (type === 'wrong') {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(160, now);
+        osc.frequency.linearRampToValueAtTime(110, now + 0.24);
+        gain.gain.setValueAtTime(0.24, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.24);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(now); osc.stop(now + 0.24);
+      } else if (type === 'fail') {
+        [300, 240, 180].forEach((freq, i) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(freq, now + i * 0.14);
+          gain.gain.setValueAtTime(0.25, now + i * 0.14);
+          gain.gain.exponentialRampToValueAtTime(0.008, now + i * 0.14 + 0.2);
+          osc.connect(gain); gain.connect(audioCtx.destination);
+          osc.start(now + i * 0.14); osc.stop(now + i * 0.14 + 0.2);
+        });
+      } else if (type === 'win') {
+        [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, now + i * 0.09);
+          gain.gain.setValueAtTime(0.25, now + i * 0.09);
+          gain.gain.exponentialRampToValueAtTime(0.008, now + i * 0.09 + 0.28);
+          osc.connect(gain); gain.connect(audioCtx.destination);
+          osc.start(now + i * 0.09); osc.stop(now + i * 0.09 + 0.28);
+        });
+      }
+    } catch (e) {}
+  }
+
+  function toggleSound() {
+    soundEnabled = !soundEnabled;
+    document.getElementById('btn-sound').textContent = soundEnabled ? '🔊' : '🔇';
+    if (soundEnabled) playSound('click');
+  }
+
+  /**
+   * ============================================================================
+   * МОДУЛЬ 4. УПРАВЛЕНИЕ СОСТОЯНИЕМ (STATE) И ЛОКАЛЬНЫМ ХРАНИЛИЩЕМ (LOCALSTORAGE)
+   * ============================================================================
+   */
+  const STORAGE_KEY = 'roblox_math_trainer_save_v8';
+  const HINT_COST = 15;
+  const MISTAKE_PENALTY = 10;
+  const MAX_ARCHIVE_ITEMS = 120;
+
+  let blitzInterval = null;
+  let blitzTimeLeft = 8.0;
+  let mistakeTimeout = null;
+  let nextQuestionTimeout = null;
+  let failModalTimeout = null;
+
+  function getTodayString() {
+    const d = new Date();
+    return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+  }
+
+  function formatNowTime() {
+    const d = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${pad(d.getDate())}.${pad(d.getMonth() + 1)} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  let state = {
+    block: 1,
+    qIndex: 0,
+    totalInRound: 5,
+    robux: 60,
+    roundRobux: 0,
+    streak: 0,
+    roundStreak: 0,
+    bestStreak: 0,
+    hearts: 2,
+    hadMistakeInQuestion: false,
+    hintUsedInRound: false,
+    hintUnlockedForQuestion: false,
+    phase: 'digits',
+    orderExpected: 1,
+    wpExpectedOp: '+',
+    wpOrderTypes: [1, 2, 3, 4, 1],
+    steps: [],
+    stepIndex: 0,
+    locked: false,
+    roundFailed: false,
+    canResumeGame: false,
+    pendingNextQuestion: false,
+    usedQuestions: [],
+    usedQuestionsByBlock: { 1: [], 2: [], 3: [], 4: [], 5: [] },
+    roundSeed: 0,
+    currentTaskMeta: null,
+    archive: [],
+    profile: {
+      firstName: 'Ученик',
+      lastName: '',
+      gender: 'male',
+      school: '',
+      grade: '4',
+      skinColor: '#ffcc99',
+      hairStyle: 'short',
+      hairColor: '#6d4c41',
+      eyes: 'normal',
+      baseGlasses: false
+    },
+    ownedSkins: ['hair_default', 'top_school', 'hat_none', 'gls_none', 'pet_none', 'back_none'],
+    equipped: {
+      hair: 'hair_default',
+      top: 'top_school',
+      hat: 'hat_none',
+      glasses: 'gls_none',
+      pet: 'pet_none',
+      back: 'back_none'
+    },
+    daily: {
+      date: getTodayString(),
+      flawlessExamples: 0,
+      tasksSolved: 0,
+      blitzWins: 0,
+      claimed: { flawless: false, tasks: false, blitz: false }
+    }
+  };
+
+  function ensureDailyDate() {
+    if (state.daily.date !== getTodayString()) {
+      state.daily = {
+        date: getTodayString(),
+        flawlessExamples: 0,
+        tasksSolved: 0,
+        blitzWins: 0,
+        claimed: { flawless: false, tasks: false, blitz: false }
+      };
+    }
+  }
+
+  function loadProgress() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const saved = JSON.parse(raw);
+        if (typeof saved.robux === 'number') state.robux = saved.robux;
+        if (typeof saved.streak === 'number') state.streak = saved.streak;
+        if (Array.isArray(saved.ownedSkins)) state.ownedSkins = saved.ownedSkins;
+        if (saved.equipped) state.equipped = { ...state.equipped, ...saved.equipped };
+        if (saved.profile) state.profile = { ...state.profile, ...saved.profile };
+        if (Array.isArray(saved.archive)) state.archive = saved.archive;
+        if (saved.usedQuestionsByBlock && typeof saved.usedQuestionsByBlock === 'object') {
+          state.usedQuestionsByBlock = { ...state.usedQuestionsByBlock, ...saved.usedQuestionsByBlock };
+        }
+        if (saved.daily && saved.daily.date === getTodayString()) {
+          state.daily = {
+            ...state.daily,
+            ...saved.daily,
+            claimed: { ...state.daily.claimed, ...(saved.daily.claimed || {}) }
+          };
+        }
+      }
+    } catch (e) {}
+    updateArchiveBadge();
+  }
+
+  function saveProgress() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        robux: state.robux,
+        streak: state.streak,
+        ownedSkins: state.ownedSkins,
+        equipped: state.equipped,
+        profile: state.profile,
+        daily: state.daily,
+        usedQuestionsByBlock: state.usedQuestionsByBlock,
+        archive: state.archive.slice(0, MAX_ARCHIVE_ITEMS)
+      }));
+    } catch (e) {}
+    updateArchiveBadge();
+  }
+
+  function updateArchiveBadge() {
+    const el = document.getElementById('menu-archive-count');
+    if (el) el.textContent = state.archive.length;
+  }
+
+  function finalizeInterruptedRoundIfNeeded() {
+    if (!state.roundFailed && state.currentTaskMeta && !state.currentTaskMeta.recorded) {
+      const hasProgressOrError = state.stepIndex > 0 || (state.currentTaskMeta.preStepsDone || 0) > 0 || state.currentTaskMeta.mistakes.length > 0;
+      if (hasProgressOrError) {
+        finalizeTaskArchive(false);
+      }
+    }
+  }
+
+  function updateOverlayBackButtons() {
+    const profBtn = document.getElementById('btn-profile-done');
+    if (profBtn) {
+      profBtn.textContent = state.canResumeGame ? '✓ СОХРАНИТЬ И В ИГРУ' : '✓ СОХРАНИТЬ И ВЫЙТИ';
+    }
+    const shopBtn = document.getElementById('btn-shop-back');
+    if (shopBtn) {
+      shopBtn.textContent = state.canResumeGame ? '⬅ ВЕРНУТЬСЯ В ИГРУ' : '⬅ В МЕНЮ';
+      shopBtn.className = 'rblx-btn ' + (state.canResumeGame ? 'btn-green' : 'btn-slate');
+    }
+    const archBtn = document.getElementById('btn-archive-back');
+    if (archBtn) {
+      archBtn.textContent = state.canResumeGame ? '⬅ ВЕРНУТЬСЯ В ИГРУ' : '⬅ В МЕНЮ';
+      archBtn.className = 'rblx-btn ' + (state.canResumeGame ? 'btn-green' : 'btn-slate');
+    }
+  }
+
+  function hideAllScreens(preserveGamePause = false) {
+    const gameEl = document.getElementById('game-screen');
+    const modalEl = document.getElementById('result-modal');
+    const isGameActive = gameEl && gameEl.style.display === 'flex' && (!modalEl || modalEl.style.display !== 'flex') && !state.roundFailed;
+    if (preserveGamePause) {
+      if (nextQuestionTimeout) {
+        clearTimeout(nextQuestionTimeout);
+        nextQuestionTimeout = null;
+        state.pendingNextQuestion = true;
+      }
+      if (failModalTimeout) {
+        clearTimeout(failModalTimeout);
+        failModalTimeout = null;
+      }
+      if (isGameActive) {
+        state.canResumeGame = true;
+      }
+    } else {
+      state.pendingNextQuestion = false;
+      if (isGameActive || state.canResumeGame) {
+        finalizeInterruptedRoundIfNeeded();
+      }
+      state.canResumeGame = false;
+    }
+    updateOverlayBackButtons();
+    ['menu-screen', 'game-screen', 'shop-screen', 'profile-screen', 'archive-screen'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+    if (modalEl) modalEl.style.display = 'none';
+  }
+
+  function returnFromOverlay() {
+    if (state.canResumeGame && !state.roundFailed) {
+      playSound('click');
+      ['menu-screen', 'shop-screen', 'profile-screen', 'archive-screen'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+      });
+      state.canResumeGame = false;
+      updateOverlayBackButtons();
+      document.getElementById('game-screen').style.display = 'flex';
+      document.getElementById('btn-home').style.display = 'inline-flex';
+      if (state.pendingNextQuestion) {
+        state.pendingNextQuestion = false;
+        advanceToNextQuestion();
+      } else if (state.block === 4 && !state.locked) {
+        resumeBlitzTimer();
+      }
+    } else {
+      goToMenu();
+    }
+  }
+
+  /**
+   * ============================================================================
+   * МОДУЛЬ 5. ЭКРАНЫ ПРОФИЛЯ, АРХИВА ЗАДАНИЙ, МИССИЙ ДНЯ И МАГАЗИНА
+   * ============================================================================
+   */
+  function openProfileEditor() {
+    stopBlitzTimer(true);
+    playSound('click');
+    hideAllScreens(true);
+    document.getElementById('profile-screen').style.display = 'flex';
+    document.getElementById('btn-home').style.display = 'inline-flex';
+
+    document.getElementById('inp-first-name').value = state.profile.firstName;
+    document.getElementById('inp-last-name').value = state.profile.lastName;
+    document.getElementById('inp-school').value = state.profile.school;
+    document.getElementById('inp-grade').value = state.profile.grade;
+
+    renderProfilePills();
+    renderAllAvatars();
+  }
+
+  function updateProfileInputs() {
+    state.profile.firstName = document.getElementById('inp-first-name').value.trim() || 'Ученик';
+    state.profile.lastName = document.getElementById('inp-last-name').value.trim();
+    state.profile.school = document.getElementById('inp-school').value.trim();
+    state.profile.grade = document.getElementById('inp-grade').value.trim() || '4';
+    saveProgress();
+    renderAllAvatars();
+  }
+
+  function renderProfilePills() {
+    const genderEl = document.getElementById('pills-gender');
+    genderEl.innerHTML = '';
+    [
+      { id: 'female', label: '👧 Ученица' },
+      { id: 'male', label: '👦 Ученик' }
+    ].forEach(g => {
+      const btn = document.createElement('button');
+      btn.className = 'pill-choice' + (state.profile.gender === g.id ? ' active' : '');
+      btn.textContent = g.label;
+      btn.onclick = () => {
+        playSound('click');
+        state.profile.gender = g.id;
+        saveProgress();
+        renderProfilePills();
+        renderAllAvatars();
+      };
+      genderEl.appendChild(btn);
+    });
+
+    const skinEl = document.getElementById('pills-skin');
+    skinEl.innerHTML = '';
+    SKIN_TONES.forEach(s => {
+      const btn = document.createElement('button');
+      btn.className = 'pill-choice' + (state.profile.skinColor === s.id ? ' active' : '');
+      btn.innerHTML = `<span class="color-swatch" style="background:${s.id}"></span><span>${s.name}</span>`;
+      btn.onclick = () => {
+        playSound('click');
+        state.profile.skinColor = s.id;
+        saveProgress();
+        renderProfilePills();
+        renderAllAvatars();
+      };
+      skinEl.appendChild(btn);
+    });
+
+    const hairStyleEl = document.getElementById('pills-hair-style');
+    hairStyleEl.innerHTML = '';
+    const effectiveHairStyle = (state.equipped.hair && state.equipped.hair !== 'hair_default' && state.profile.hairStyle === 'none')
+      ? (state.profile.gender === 'male' ? 'spiky' : 'pigtails')
+      : state.profile.hairStyle;
+    BASE_HAIR_STYLES.forEach(hs => {
+      const btn = document.createElement('button');
+      btn.className = 'pill-choice' + (effectiveHairStyle === hs.id ? ' active' : '');
+      btn.textContent = hs.name;
+      btn.onclick = () => {
+        playSound('click');
+        state.profile.hairStyle = hs.id;
+        state.equipped.hair = 'hair_default';
+        saveProgress();
+        renderProfilePills();
+        renderAllAvatars();
+      };
+      hairStyleEl.appendChild(btn);
+    });
+
+    const hairColorEl = document.getElementById('pills-hair-color');
+    hairColorEl.innerHTML = '';
+    const isDefaultHairEquipped = !state.equipped.hair || state.equipped.hair === 'hair_default';
+    BASE_HAIR_COLORS.forEach(hc => {
+      const btn = document.createElement('button');
+      btn.className = 'pill-choice' + (isDefaultHairEquipped && state.profile.hairColor === hc.id ? ' active' : '');
+      btn.innerHTML = `<span class="color-swatch" style="background:${hc.id}"></span><span>${hc.name}</span>`;
+      btn.onclick = () => {
+        playSound('click');
+        state.profile.hairColor = hc.id;
+        state.equipped.hair = 'hair_default';
+        saveProgress();
+        renderProfilePills();
+        renderAllAvatars();
+      };
+      hairColorEl.appendChild(btn);
+    });
+
+    const eyesEl = document.getElementById('pills-eyes');
+    eyesEl.innerHTML = '';
+    EYE_STYLES.forEach(ey => {
+      const btn = document.createElement('button');
+      btn.className = 'pill-choice' + (state.profile.eyes === ey.id ? ' active' : '');
+      btn.textContent = ey.name;
+      btn.onclick = () => {
+        playSound('click');
+        state.profile.eyes = ey.id;
+        saveProgress();
+        renderProfilePills();
+        renderAllAvatars();
+      };
+      eyesEl.appendChild(btn);
+    });
+
+    const glsEl = document.getElementById('pills-base-glasses');
+    glsEl.innerHTML = '';
+    const hasAnyGlasses = Boolean((state.equipped.glasses && state.equipped.glasses !== 'gls_none') || state.profile.baseGlasses);
+    [
+      { val: false, label: 'Без очков' },
+      { val: true, label: '👓 В очках' }
+    ].forEach(opt => {
+      const btn = document.createElement('button');
+      btn.className = 'pill-choice' + (hasAnyGlasses === opt.val ? ' active' : '');
+      btn.textContent = opt.label;
+      btn.onclick = () => {
+        playSound('click');
+        state.profile.baseGlasses = opt.val;
+        state.equipped.glasses = 'gls_none';
+        saveProgress();
+        renderProfilePills();
+        renderAllAvatars();
+      };
+      glsEl.appendChild(btn);
+    });
+  }
+
+  function saveProfileAndClose() {
+    updateProfileInputs();
+    returnFromOverlay();
+  }
+
+  function initTaskMeta(data) {
+    state.currentTaskMeta = {
+      id: Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+      time: formatNowTime(),
+      block: state.block,
+      blockTitle: BLOCK_TITLES[state.block] || `Блок ${state.block}`,
+      taskType: data.taskType || '',
+      questionText: data.questionText || '',
+      correctAnswer: data.correctAnswer || '',
+      correctDetails: data.correctDetails || '',
+      preStepsTotal: data.preStepsTotal || 0,
+      preStepsDone: 0,
+      mistakes: [],
+      usedHint: false,
+      recorded: false
+    };
+  }
+
+  function logTaskMistake(description) {
+    if (!state.currentTaskMeta) return;
+    state.currentTaskMeta.mistakes.push(description);
+  }
+
+  function finalizeTaskArchive(isSuccess) {
+    if (!state.currentTaskMeta || state.currentTaskMeta.recorded) return;
+    const meta = state.currentTaskMeta;
+    meta.recorded = true;
+
+    let status = 'flawless';
+    let studentAnswerText = meta.correctAnswer;
+
+    if (!isSuccess) {
+      status = 'failed';
+      const totalSteps = (meta.preStepsTotal || 0) + state.steps.length;
+      const doneSteps = (meta.preStepsDone || 0) + state.stepIndex;
+      if (meta.mistakes.length > 0) {
+        studentAnswerText = `Не завершено (выполнено шагов: ${doneSteps} из ${totalSteps}). Ошибочный ввод: ${meta.mistakes.join('; ')}`;
+      } else {
+        studentAnswerText = `Задание прервано до завершения (выполнено шагов: ${doneSteps} из ${totalSteps})`;
+      }
+    } else if (meta.mistakes.length > 0) {
+      status = 'corrected';
+      studentAnswerText = `${meta.correctAnswer} (решено после исправления ошибки)`;
+    }
+
+    state.archive.unshift({
+      id: meta.id,
+      time: meta.time,
+      block: meta.block,
+      blockTitle: meta.blockTitle,
+      taskType: meta.taskType,
+      questionText: meta.questionText,
+      studentAnswer: studentAnswerText,
+      correctAnswer: meta.correctAnswer,
+      correctDetails: meta.correctDetails,
+      mistakes: meta.mistakes,
+      usedHint: meta.usedHint,
+      status
+    });
+
+    if (state.archive.length > MAX_ARCHIVE_ITEMS) {
+      state.archive = state.archive.slice(0, MAX_ARCHIVE_ITEMS);
+    }
+    saveProgress();
+  }
+
+  function openArchive() {
+    stopBlitzTimer(true);
+    playSound('click');
+    clearArchiveConfirm = false;
+    resetClearArchiveBtn();
+    hideAllScreens(true);
+    document.getElementById('archive-screen').style.display = 'flex';
+    document.getElementById('btn-home').style.display = 'inline-flex';
+    renderArchiveScreen();
+  }
+
+  function resetClearArchiveBtn() {
+    const btn = document.getElementById('btn-clear-archive');
+    if (btn) {
+      btn.textContent = '🗑️ ОЧИСТИТЬ';
+      btn.className = 'rblx-btn btn-red';
+    }
+  }
+
+  function handleClearArchiveClick() {
+    playSound('click');
+    if (state.archive.length === 0) return;
+    const btn = document.getElementById('btn-clear-archive');
+    if (!clearArchiveConfirm) {
+      clearArchiveConfirm = true;
+      btn.textContent = '⚠️ ТОЧНО ОЧИСТИТЬ?';
+      btn.className = 'rblx-btn btn-orange';
+      if (clearArchiveTimeout) clearTimeout(clearArchiveTimeout);
+      clearArchiveTimeout = setTimeout(() => {
+        clearArchiveConfirm = false;
+        clearArchiveTimeout = null;
+        resetClearArchiveBtn();
+      }, 3500);
+    } else {
+      if (clearArchiveTimeout) {
+        clearTimeout(clearArchiveTimeout);
+        clearArchiveTimeout = null;
+      }
+      state.archive = [];
+      clearArchiveConfirm = false;
+      resetClearArchiveBtn();
+      saveProgress();
+      renderArchiveScreen();
+    }
+  }
+
+  function setArchiveFilter(filterVal) {
+    playSound('click');
+    archiveFilter = filterVal;
+    renderArchiveScreen();
+  }
+
+  function renderArchiveScreen() {
+    const total = state.archive.length;
+    const flawlessCount = state.archive.filter(x => x.status === 'flawless').length;
+    const correctedCount = state.archive.filter(x => x.status === 'corrected').length;
+    const failedCount = state.archive.filter(x => x.status === 'failed').length;
+
+    document.getElementById('arch-stat-total').textContent = total;
+    document.getElementById('arch-stat-flawless').textContent = flawlessCount;
+    document.getElementById('arch-stat-corrected').textContent = correctedCount;
+    document.getElementById('arch-stat-failed').textContent = failedCount;
+
+    const filtersEl = document.getElementById('archive-filters');
+    filtersEl.innerHTML = '';
+    const filterOptions = [
+      { id: 'all', label: `Все (${total})` },
+      { id: 'errors', label: `С ошибками (${correctedCount + failedCount})` },
+      { id: 'block_1', label: 'Блок 1' },
+      { id: 'block_2', label: 'Блок 2' },
+      { id: 'block_3', label: 'Блок 3' },
+      { id: 'block_4', label: 'Блок 4' },
+      { id: 'block_5', label: 'Блок 5' }
+    ];
+
+    filterOptions.forEach(f => {
+      const btn = document.createElement('button');
+      btn.className = 'filter-chip' + (archiveFilter === f.id ? ' active' : '');
+      btn.textContent = f.label;
+      btn.onclick = () => setArchiveFilter(f.id);
+      filtersEl.appendChild(btn);
+    });
+
+    const listEl = document.getElementById('archive-list');
+    listEl.innerHTML = '';
+
+    const filtered = state.archive.filter(item => {
+      if (archiveFilter === 'all') return true;
+      if (archiveFilter === 'errors') return item.status !== 'flawless';
+      if (archiveFilter.startsWith('block_')) {
+        const bNum = parseInt(archiveFilter.split('_')[1], 10);
+        return item.block === bNum;
+      }
+      return true;
+    });
+
+    if (filtered.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'archive-empty';
+      empty.innerHTML = total === 0
+        ? '📭 В архиве пока нет решённых заданий.<br><span style="font-size:0.78rem; color:#64748b;">Выбери любой учебный блок в меню и начни тренировку — все задания, ответы ученика и правильные решения появятся здесь!</span>'
+        : '🔍 В выбранной категории пока нет записей.';
+      listEl.appendChild(empty);
+      return;
+    }
+
+    filtered.forEach(item => {
+      const card = document.createElement('div');
+      card.className = `archive-card status-${item.status}`;
+
+      let statusLabel = '✅ ВЕРНО С 1-Й ПОПЫТКИ';
+      let statusClass = 'tag-flawless';
+      const errCount = Array.isArray(item.mistakes) ? item.mistakes.length : 0;
+      const errWord = pluralizeRu(errCount, ['ОШИБКА', 'ОШИБКИ', 'ОШИБОК']);
+      if (item.status === 'corrected') {
+        statusLabel = `⚠️ ИСПРАВЛЕНО (${errCount} ${errWord})`;
+        statusClass = 'tag-corrected';
+      } else if (item.status === 'failed') {
+        statusLabel = errCount > 0
+          ? `❌ НЕ РЕШЕНО (${errCount} ${errWord})`
+          : '⏹️ ЗАДАНИЕ ПРЕРВАНО';
+        statusClass = 'tag-failed';
+      }
+
+      const hintBadge = item.usedHint
+        ? `<span class="archive-badge" style="color:var(--neon-yellow);">💡 С подсказкой</span>`
+        : '';
+
+      const mistakesHTML = errCount > 0
+        ? `<div class="archive-mistakes-box"><strong>Разбор ошибок ученика:</strong> ${item.mistakes.map(escapeHTML).join(' • ')}</div>`
+        : '';
+
+      const detailsHTML = item.correctDetails
+        ? `<div style="margin-top:3px; font-size:0.7rem; color:#94a3b8;">${escapeHTML(item.correctDetails)}</div>`
+        : '';
+
+      const studentColor = item.status === 'flawless'
+        ? 'var(--neon-green)'
+        : (item.status === 'corrected' ? 'var(--neon-yellow)' : '#ff8a80');
+
+      card.innerHTML = `
+        <div class="archive-card-head">
+          <div style="display:flex; gap:5px; align-items:center; flex-wrap:wrap;">
+            <span class="archive-badge">${escapeHTML(item.blockTitle)}</span>
+            <span style="font-size:0.68rem; color:#94a3b8; font-weight:700;">${escapeHTML(item.taskType)} • ${escapeHTML(item.time)}</span>
+            ${hintBadge}
+          </div>
+          <span class="archive-status-tag ${statusClass}">${statusLabel}</span>
+        </div>
+        <div class="archive-task-box">${escapeHTML(item.questionText)}</div>
+        <div class="archive-compare-grid">
+          <div class="archive-ans-box">
+            <div class="archive-ans-lbl">Ответ ученика:</div>
+            <div style="font-weight:900; color:${studentColor};">${escapeHTML(item.studentAnswer)}</div>
+          </div>
+          <div class="archive-ans-box">
+            <div class="archive-ans-lbl">Правильный ответ:</div>
+            <div style="font-weight:900; color:var(--neon-green);">${escapeHTML(item.correctAnswer)}</div>
+            ${detailsHTML}
+          </div>
+        </div>
+        ${mistakesHTML}
+      `;
+      listEl.appendChild(card);
+    });
+  }
+
+  function renderMissions() {
+    const listEl = document.getElementById('missions-list');
+    if (!listEl) return;
+
+    ensureDailyDate();
+    saveProgress();
+
+    const missions = [
+      {
+        key: 'flawless',
+        title: 'Решить 20 примеров без ошибок',
+        current: Math.min(20, state.daily.flawlessExamples),
+        target: 20,
+        reward: 100
+      },
+      {
+        key: 'tasks',
+        title: 'Решить 10 текстовых задач в столбик (Блок 5)',
+        current: Math.min(10, state.daily.tasksSolved),
+        target: 10,
+        reward: 100
+      },
+      {
+        key: 'blitz',
+        title: 'Пройти раунд Блиц на скорость (Блок 4)',
+        current: Math.min(1, state.daily.blitzWins),
+        target: 1,
+        reward: 100
+      }
+    ];
+
+    const completedCount = missions.filter(m => m.current >= m.target).length;
+    const dateEl = document.getElementById('missions-date');
+    if (dateEl) {
+      dateEl.textContent = `Выполнено: ${completedCount} / ${missions.length}`;
+    }
+
+    listEl.innerHTML = '';
+    missions.forEach(m => {
+      const pct = Math.floor((m.current / m.target) * 100);
+      const isDone = m.current >= m.target;
+      const isClaimed = state.daily.claimed[m.key];
+
+      const row = document.createElement('div');
+      row.className = 'mission-row';
+
+      let btnHTML = '';
+      if (isClaimed) {
+        btnHTML = `<button class="rblx-btn btn-slate mission-btn" disabled>✓ ПОЛУЧЕНО</button>`;
+      } else if (isDone) {
+        btnHTML = `<button class="rblx-btn btn-green mission-btn" onclick="claimMission('${m.key}', ${m.reward})">ЗАБРАТЬ +${m.reward} R$</button>`;
+      } else {
+        btnHTML = `<span style="font-size:0.75rem; font-weight:900; color:var(--neon-yellow); flex-shrink:0;">${m.current}/${m.target}</span>`;
+      }
+
+      row.innerHTML = `
+        <div class="mission-info">
+          <div class="mission-title">${m.title}</div>
+          <div class="mission-bar-bg">
+            <div class="mission-bar-fill" style="width: ${pct}%;"></div>
+          </div>
+        </div>
+        ${btnHTML}
+      `;
+      listEl.appendChild(row);
+    });
+  }
+
+  function claimMission(key, reward) {
+    ensureDailyDate();
+    if (state.daily.claimed[key]) return;
+    playSound('win');
+    state.daily.claimed[key] = true;
+    state.robux += reward;
+    saveProgress();
+    updateHUD();
+    renderMissions();
+    spawnFloatingText(`+${reward} R$ МИССИЯ!`, 'var(--neon-yellow)', document.getElementById('robux-val'));
+  }
+
+  function updateHUD() {
+    document.getElementById('robux-val').textContent = state.robux;
+    document.getElementById('streak-val').textContent = state.streak;
+
+    const pct = ((state.qIndex + 1) / state.totalInRound) * 100;
+    document.getElementById('progress-fill').style.width = `${pct}%`;
+    document.getElementById('progress-label').textContent = `ЗАДАНИЕ ${state.qIndex + 1} / ${state.totalInRound}`;
+
+    const heartsContainer = document.getElementById('hearts-box');
+    heartsContainer.innerHTML = '';
+    for (let i = 0; i < 2; i++) {
+      const span = document.createElement('span');
+      span.className = 'heart' + (i >= state.hearts ? ' lost' : '');
+      span.textContent = '❤️';
+      heartsContainer.appendChild(span);
+    }
+
+    const hintBtn = document.getElementById('btn-buy-hint');
+    if (hintBtn) {
+      if (state.roundFailed) {
+        hintBtn.textContent = '⛔ ЭТАП ПРОВАЛЕН';
+        hintBtn.disabled = true;
+      } else if (state.hintUsedInRound) {
+        hintBtn.textContent = '💡 ИСПОЛЬЗОВАНА (0/1)';
+        hintBtn.disabled = true;
+      } else if (state.robux < HINT_COST) {
+        hintBtn.textContent = `💡 НЕТ МОНЕТ (${HINT_COST} R$)`;
+        hintBtn.disabled = true;
+      } else {
+        hintBtn.textContent = `💡 ПОДСКАЗКА (${HINT_COST} R$)`;
+        hintBtn.disabled = false;
+      }
+    }
+  }
+
+  function openShop() {
+    stopBlitzTimer(true);
+    playSound('click');
+    hideAllScreens(true);
+    document.getElementById('shop-screen').style.display = 'flex';
+    document.getElementById('btn-home').style.display = 'inline-flex';
+    renderShopItems();
+  }
+
+  function switchShopTab(cat) {
+    playSound('click');
+    currentShopTab = cat;
+    ['hair', 'top', 'hat', 'glasses', 'pet', 'back'].forEach(c => {
+      const btn = document.getElementById('tab-' + c);
+      if (btn) btn.className = 'rblx-btn tab-btn ' + (c === cat ? 'btn-blue' : 'btn-slate');
+    });
+    renderShopItems();
+  }
+
+  function renderShopItems() {
+    const grid = document.getElementById('shop-items-grid');
+    grid.innerHTML = '';
+
+    const items = SHOP_ITEMS.filter(item => item.category === currentShopTab);
+    items.forEach(item => {
+      const isOwned = state.ownedSkins.includes(item.id);
+      const isEquipped = state.equipped[item.category] === item.id;
+
+      const card = document.createElement('div');
+      card.className = 'skin-card' + (isEquipped ? ' equipped' : '');
+
+      let btnClass = 'btn-orange';
+      let btnText = `КУПИТЬ: ${item.price} R$`;
+      if (isEquipped) {
+        btnClass = 'btn-green';
+        btnText = '✓ НАДЕТО';
+      } else if (isOwned) {
+        btnClass = 'btn-blue';
+        btnText = 'НАДЕТЬ';
+      }
+
+      card.innerHTML = `
+        <div class="skin-icon">${item.icon}</div>
+        <div class="skin-title">${item.name}</div>
+        <button class="rblx-btn ${btnClass} skin-action-btn">${btnText}</button>
+      `;
+
+      card.querySelector('button').onclick = () => handleSkinAction(item);
+      grid.appendChild(card);
+    });
+  }
+
+  function handleSkinAction(item) {
+    const isOwned = state.ownedSkins.includes(item.id);
+    const msgEl = document.getElementById('shop-msg');
+    const name = state.profile.firstName || 'Ученик';
+
+    if (isOwned) {
+      playSound('click');
+      state.equipped[item.category] = item.id;
+      saveProgress();
+      renderAllAvatars();
+      renderShopItems();
+      msgEl.textContent = `${name} примерил(а): «${item.name}»!`;
+      msgEl.style.color = 'var(--neon-green)';
+    } else {
+      if (state.robux >= item.price) {
+        playSound('win');
+        state.robux -= item.price;
+        state.ownedSkins.push(item.id);
+        state.equipped[item.category] = item.id;
+        saveProgress();
+        updateHUD();
+        renderAllAvatars();
+        renderShopItems();
+        msgEl.textContent = `Куплен и надет предмет «${item.name}»!`;
+        msgEl.style.color = 'var(--neon-yellow)';
+      } else {
+        playSound('wrong');
+        const need = item.price - state.robux;
+        msgEl.textContent = `Не хватает ${need} R$! Заработай монеты в примерах или миссиях!`;
+        msgEl.style.color = 'var(--neon-red)';
+      }
+    }
+  }
+
+  function spawnFloatingText(text, color, targetEl) {
+    const rect = targetEl ? targetEl.getBoundingClientRect() : { left: window.innerWidth / 2, top: window.innerHeight / 2 };
+    const floater = document.createElement('div');
+    floater.className = 'float-coin';
+    floater.style.color = color;
+    floater.textContent = text;
+    const safeLeft = Math.min(window.innerWidth - 135, Math.max(10, rect.left));
+    const safeTop = Math.max(20, rect.top - 10);
+    floater.style.left = `${safeLeft}px`;
+    floater.style.top = `${safeTop}px`;
+    document.body.appendChild(floater);
+    setTimeout(() => floater.remove(), 950);
+  }
+
+  function rewardSuccess(targetEl, baseAmount = 4) {
+    const total = baseAmount;
+    state.robux += total;
+    state.roundRobux += total;
+    saveProgress();
+    updateHUD();
+    spawnFloatingText(`+${total} R$`, 'var(--neon-yellow)', targetEl);
+  }
+
+  function updateNumpadState() {
+    const isDigitsPhase = state.phase === 'digits' && !state.locked && !state.roundFailed;
+    document.querySelectorAll('.num-key').forEach(btn => {
+      btn.disabled = !isDigitsPhase;
+    });
+  }
+
+  function applyMistakePenalty(targetEl, reasonText = '') {
+    if (state.roundFailed) return;
+
+    state.streak = 0;
+    state.roundStreak = 0;
+    state.hadMistakeInQuestion = true;
+    state.hearts--;
+
+    const deducted = Math.min(state.robux, MISTAKE_PENALTY);
+    state.robux = Math.max(0, state.robux - MISTAKE_PENALTY);
+    state.roundRobux -= deducted;
+    saveProgress();
+    updateHUD();
+    spawnFloatingText(`−${deducted} R$`, 'var(--neon-red)', targetEl || document.getElementById('robux-val'));
+
+    if (state.hearts === 1) {
+      setStatus(
+        reasonText || `ОШИБКА! Списано −${deducted} R$. Осталось 1 сердечко — при следующей ошибке задание будет провалено!`,
+        'var(--neon-yellow)'
+      );
+    } else if (state.hearts <= 0) {
+      failRound(reasonText || 'ВТОРАЯ ОШИБКА! Сердечки закончились — дальнейшее прохождение невозможно!');
+    }
+  }
+
+  function failRound(message) {
+    stopBlitzTimer();
+    state.locked = true;
+    state.roundFailed = true;
+    updateNumpadState();
+    finalizeTaskArchive(false);
+    updateHUD();
+    playSound('fail');
+    setStatus(`⛔ ${message}`, 'var(--neon-red)');
+
+    if (failModalTimeout) clearTimeout(failModalTimeout);
+    failModalTimeout = setTimeout(() => {
+      failModalTimeout = null;
+      showRoundModal(false, message);
+    }, 900);
+  }
+
+  function setStatus(text, color = '#e2e8f0') {
+    const fb = document.getElementById('game-feedback');
+    if (fb) {
+      fb.textContent = text;
+      fb.style.color = color;
+    }
+  }
+
+  function updateHintBanner(text = '') {
+    const hintEl = document.getElementById('status-banner');
+    if (!hintEl) return;
+    if (state.hintUnlockedForQuestion && text) {
+      hintEl.textContent = text;
+      hintEl.style.display = 'block';
+    } else {
+      hintEl.textContent = '';
+      hintEl.style.display = 'none';
+    }
+  }
+
+  function buyRoundHint() {
+    if (state.locked || state.roundFailed) return;
+    if (state.hintUsedInRound) {
+      playSound('wrong');
+      setStatus('Все доступные подсказки на этот этап уже использованы (0/1)!', 'var(--neon-red)');
+      return;
+    }
+    if (state.robux < HINT_COST) {
+      playSound('wrong');
+      setStatus(`Недостаточно монет для подсказки! Нужно ${HINT_COST} R$.`, 'var(--neon-red)');
+      return;
+    }
+
+    state.robux -= HINT_COST;
+    state.roundRobux -= HINT_COST;
+    state.hintUsedInRound = true;
+    state.hintUnlockedForQuestion = true;
+    if (state.currentTaskMeta) state.currentTaskMeta.usedHint = true;
+    if (state.block === 4) blitzTimeLeft = 8.0;
+    setStatus('🔓 Подсказка активирована на текущее задание!', 'var(--neon-blue)');
+    saveProgress();
+    updateHUD();
+    spawnFloatingText(`−${HINT_COST} R$ 💡`, 'var(--neon-blue)', document.getElementById('btn-buy-hint'));
+
+    if (state.phase === 'order') {
+      const expectedOrd = state.orderExpected;
+      const targetCircle = document.querySelector(`.order-circle[data-order="${expectedOrd}"]`);
+      if (targetCircle && targetCircle._orderHandler) {
+        targetCircle._orderHandler(true);
+      }
+    } else if (state.phase === 'wp_op') {
+      const targetOpBtn = document.querySelector(`.wp-op-btn[data-op="${state.wpExpectedOp}"]`);
+      if (targetOpBtn && targetOpBtn._wpHandler) {
+        targetOpBtn._wpHandler(true);
+      }
+    } else if (state.stepIndex < state.steps.length) {
+      const current = state.steps[state.stepIndex];
+      handleDigitInput(current.expected, true);
+    }
+  }
+
+  function shuffleArray(arr) {
+    const copy = [...arr];
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+  }
+
+  /**
+   * ============================================================================
+   * МОДУЛЬ 6. ЯДРО ИГРОВОГО ПРОЦЕССА И ПОШАГОВОЙ ПРОВЕРКИ ВВОДА
+   * ============================================================================
+   * Запускает выбранный учебный блок (1–5), сбрасывает счётчики раунда
+   * и инициализирует очередь вопросов.
+   * @param {number} blockNum - Номер учебного блока (1..5).
+   */
+  function startBlock(blockNum) {
+    stopBlitzTimer();
+    playSound('click');
+    state.block = blockNum;
+    state.qIndex = 0;
+    state.totalInRound = blockNum === 4 ? 10 : 5;
+    state.roundRobux = 0;
+    state.roundStreak = 0;
+    state.bestStreak = 0;
+    state.hearts = 2;
+    state.hintUsedInRound = false;
+    state.roundFailed = false;
+    if (!state.usedQuestionsByBlock[blockNum]) {
+      state.usedQuestionsByBlock[blockNum] = [];
+    }
+    state.usedQuestions = state.usedQuestionsByBlock[blockNum];
+    state.roundSeed = randInt(0, 1);
+    state.wpOrderTypes = shuffleArray([1, 2, 3, 4, randInt(1, 4)]);
+
+    hideAllScreens();
+    document.getElementById('game-screen').style.display = 'flex';
+    document.getElementById('btn-home').style.display = 'inline-flex';
+    document.getElementById('blitz-timer-wrap').style.display = blockNum === 4 ? 'block' : 'none';
+
+    loadQuestion();
+  }
+
+  function restartBlock() {
+    startBlock(state.block);
+  }
+
+  function goToMenu() {
+    stopBlitzTimer();
+    playSound('click');
+    hideAllScreens();
+    document.getElementById('btn-home').style.display = 'none';
+    document.getElementById('menu-screen').style.display = 'flex';
+    renderMissions();
+    updateArchiveBadge();
+  }
+
+  function loadQuestion() {
+    if (state.roundFailed) return;
+    stopBlitzTimer();
+    state.hadMistakeInQuestion = false;
+    state.hintUnlockedForQuestion = false;
+    state.steps = [];
+    state.stepIndex = 0;
+    state.locked = false;
+    updateHintBanner('');
+    setStatus('🔒 Подсказки скрыты. Решай самостоятельно!', '#94a3b8');
+    updateHUD();
+
+    const ws = document.getElementById('workspace');
+    ws.innerHTML = '';
+
+    if (state.block === 1) {
+      buildBlock1Question(ws);
+    } else if (state.block === 2) {
+      buildBlock2Question(ws);
+    } else if (state.block === 3) {
+      buildBlock3Question(ws);
+    } else if (state.block === 4) {
+      buildBlock4Blitz(ws);
+      startBlitzTimer();
+    } else if (state.block === 5) {
+      buildBlock5WordProblem(ws);
+    }
+
+    updateNumpadState();
+    if (state.phase === 'digits') {
+      highlightCurrentStep();
+    }
+  }
+
+  function highlightCurrentStep(prefixText = '') {
+    document.querySelectorAll('.cell-input').forEach(el => el.classList.remove('active'));
+    if (state.stepIndex < state.steps.length) {
+      const current = state.steps[state.stepIndex];
+      current.el.classList.add('active');
+      if (current.cardEl) {
+        current.cardEl.classList.add('unlocked');
+        if (current.revealLabelEl && current.revealLabelHTML) {
+          current.revealLabelEl.innerHTML = current.revealLabelHTML;
+        }
+      }
+      if (state.hintUnlockedForQuestion) {
+        const msg = current.stepMsg
+          ? (prefixText ? `${prefixText} ${current.stepMsg}` : `💡 Подсказка: ${current.stepMsg}`)
+          : prefixText;
+        updateHintBanner(msg);
+      } else {
+        updateHintBanner('');
+      }
+    }
+  }
+
+  function handleDigitInput(digit, fromPaidHint = false) {
+    if (state.locked || state.roundFailed) return;
+
+    if (state.phase === 'order') {
+      playSound('wrong');
+      setStatus('Сначала нажми на кружочки со знаком «?» над операциями!', 'var(--neon-yellow)');
+      return;
+    }
+
+    if (state.phase === 'wp_op') {
+      playSound('wrong');
+      setStatus('Сначала выбери действие задачи, нажав на кнопку «+», «−», «×» или «÷»!', 'var(--neon-yellow)');
+      return;
+    }
+
+    if (state.stepIndex >= state.steps.length) return;
+
+    const current = state.steps[state.stepIndex];
+    if (current.allowSwapAddends && digit !== current.expected && digit === current.altExpectedDigit) {
+      current.allowSwapAddends();
+    }
+    if (digit === current.expected) {
+      playSound('correct');
+      current.el.textContent = digit;
+      current.el.classList.remove('active', 'wrong');
+      current.el.classList.add('correct');
+      rewardSuccess(current.el, 4);
+
+      state.stepIndex++;
+      if (state.stepIndex < state.steps.length) {
+        const prefix = fromPaidHint ? `💡 Подсказка (${digit}):` : '';
+        highlightCurrentStep(prefix);
+      } else {
+        const orderFinalEl = document.getElementById('order-final-ans');
+        if (orderFinalEl && state.currentTaskMeta) {
+          orderFinalEl.textContent = state.currentTaskMeta.correctAnswer;
+        }
+        completeQuestionSuccess();
+      }
+    } else {
+      playSound('wrong');
+      current.el.textContent = digit;
+      current.el.classList.remove('wrong');
+      void current.el.offsetWidth;
+      current.el.classList.add('wrong');
+
+      const stepContext = current.shortLabel || `шаг ${state.stepIndex + 1}`;
+      logTaskMistake(`Введено «${digit}» вместо «${current.expected}» (${stepContext})`);
+      applyMistakePenalty(current.el);
+
+      if (!state.roundFailed && state.hearts > 0) {
+        if (state.block === 4) {
+          blitzTimeLeft = 8.0;
+          const bar = document.getElementById('blitz-timer-bar');
+          if (bar) bar.style.width = '100%';
+        }
+        state.locked = true;
+        if (mistakeTimeout) clearTimeout(mistakeTimeout);
+        mistakeTimeout = setTimeout(() => {
+          mistakeTimeout = null;
+          if (!state.roundFailed) {
+            current.el.textContent = '';
+            current.el.classList.remove('wrong');
+            state.locked = false;
+          }
+        }, 420);
+      }
+    }
+  }
+
+  window.addEventListener('keydown', (e) => {
+    if (document.getElementById('game-screen').style.display !== 'flex') return;
+    if (document.getElementById('result-modal').style.display === 'flex') return;
+    if (state.phase !== 'digits' || state.locked || state.roundFailed) return;
+    if (e.key >= '0' && e.key <= '9') {
+      handleDigitInput(parseInt(e.key, 10));
+    }
+  });
+
+  function completeQuestionSuccess() {
+    if (state.roundFailed) return;
+    stopBlitzTimer();
+    state.locked = true;
+    updateNumpadState();
+    finalizeTaskArchive(true);
+    playSound('win');
+
+    ensureDailyDate();
+    let streakBonus = 0;
+    if (!state.hadMistakeInQuestion) {
+      state.streak++;
+      state.roundStreak = (state.roundStreak || 0) + 1;
+      if (state.roundStreak > state.bestStreak) state.bestStreak = state.roundStreak;
+      streakBonus = state.streak >= 5 ? 6 : (state.streak >= 3 ? 3 : 0);
+      state.daily.flawlessExamples++;
+    } else if (state.roundStreak > state.bestStreak) {
+      state.bestStreak = state.roundStreak;
+    }
+    const bonus = (state.hadMistakeInQuestion ? 5 : 12) + streakBonus;
+    state.robux += bonus;
+    state.roundRobux += bonus;
+
+    if (state.block === 5) {
+      state.daily.tasksSolved++;
+    }
+
+    saveProgress();
+    updateHUD();
+    const hName = state.profile.firstName || 'Ученик';
+    const comboNote = streakBonus > 0 ? ` (включая комбо-бонус +${streakBonus} R$)` : '';
+    setStatus(`Отлично, ${hName}! Задание решено верно (+${bonus} R$)${comboNote}!`, 'var(--neon-green)');
+
+    if (nextQuestionTimeout) clearTimeout(nextQuestionTimeout);
+    nextQuestionTimeout = setTimeout(() => {
+      nextQuestionTimeout = null;
+      advanceToNextQuestion();
+    }, 1000);
+  }
+
+  function advanceToNextQuestion() {
+    if (state.roundFailed) return;
+    state.qIndex++;
+    if (state.qIndex < state.totalInRound) {
+      loadQuestion();
+    } else {
+      ensureDailyDate();
+      if (state.block === 4) {
+        state.daily.blitzWins++;
+        saveProgress();
+      }
+      const fullName = `${state.profile.firstName} ${state.profile.lastName}`.trim();
+      const verb = state.profile.gender === 'male' ? 'решил' : 'решила';
+      const gradeLabel = formatGradeText(state.profile.grade);
+      showRoundModal(true, `${fullName} (${gradeLabel}) успешно ${verb} все задания этапа!`);
+    }
+  }
+
+  function showRoundModal(isVictory, subtitleText) {
+    stopBlitzTimer();
+    const modalBox = document.getElementById('modal-box');
+    const titleEl = document.getElementById('modal-title');
+    const subEl = document.getElementById('modal-subtitle');
+    const retryBtn = document.getElementById('modal-retry-btn');
+
+    if (isVictory) {
+      playSound('win');
+      modalBox.style.borderColor = 'var(--neon-green)';
+      titleEl.textContent = 'ЭТАП ПРОЙДЕН!';
+      titleEl.style.color = 'var(--neon-green)';
+      retryBtn.textContent = 'ЕЩЁ РАЗ';
+      retryBtn.className = 'rblx-btn btn-green';
+    } else {
+      modalBox.style.borderColor = 'var(--neon-red)';
+      titleEl.textContent = 'ЗАДАНИЕ ПРОВАЛЕНО!';
+      titleEl.style.color = 'var(--neon-red)';
+      retryBtn.textContent = 'НАЧАТЬ ЗАНОВО';
+      retryBtn.className = 'rblx-btn btn-red';
+    }
+
+    subEl.textContent = subtitleText;
+    const sign = state.roundRobux >= 0 ? '+' : '';
+    document.getElementById('modal-robux').textContent = `${sign}${state.roundRobux} R$`;
+    document.getElementById('modal-streak').textContent = `🔥 ${state.bestStreak}`;
+    document.getElementById('result-modal').style.display = 'flex';
+  }
+
+  function randInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function pickFromPoolWithReset(pool, keyFn) {
+    let avail = pool.filter(item => !state.usedQuestions.includes(keyFn(item)));
+    if (avail.length === 0) {
+      pool.forEach(item => {
+        const k = keyFn(item);
+        const idx = state.usedQuestions.indexOf(k);
+        if (idx !== -1) state.usedQuestions.splice(idx, 1);
+      });
+      avail = pool;
+    }
+    const pick = avail[randInt(0, avail.length - 1)];
+    state.usedQuestions.push(keyFn(pick));
+    return pick;
+  }
+
+  function createInputCell(isCarry = false, isBorrow = false) {
+    const div = document.createElement('div');
+    div.className = 'cell cell-input' + (isCarry ? ' cell-carry' : '') + (isBorrow ? ' cell-borrow' : '');
+    return div;
+  }
+
+  function createStaticCell(text, extraClass = 'cell-digit') {
+    const div = document.createElement('div');
+    div.className = 'cell ' + extraClass;
+    div.textContent = text;
+    return div;
+  }
+
+  /**
+   * ============================================================================
+   * МОДУЛЬ 7. ГЕНЕРАТОРЫ МАТЕМАТИЧЕСКИХ ЗАДАНИЙ (БЛОКИ 1–5)
+   * - Блок 1: Сложение и вычитание в столбик (2-, 3- и 4-значные числа с переносом и заёмом)
+   * - Блок 2: Порядок выполнения действий (выражения со скобками и пошаговым расчётом)
+   * - Блок 3: Умножение в столбик и полное деление уголком
+   * - Блок 4: Блиц-тренажёр таблицы умножения и деления на скорость (таймер 8 сек)
+   * - Блок 5: Текстовые задачи с выбором знака операции, записью в столбик/уголком и ответом
+   * ============================================================================
+   */
+  const PLACE_NAMES = {
+    2: ['десятков', 'единиц'],
+    3: ['сотен', 'десятков', 'единиц'],
+    4: ['тысяч', 'сотен', 'десятков', 'единиц']
+  };
+
+  const BLOCK1_ADD_2D = [
+    { a: 38, b: 47 }, { a: 29, b: 56 }, { a: 45, b: 38 }, { a: 57, b: 26 }, { a: 34, b: 49 },
+    { a: 68, b: 25 }, { a: 46, b: 37 }, { a: 59, b: 34 }, { a: 27, b: 68 }, { a: 48, b: 45 }
+  ];
+  const BLOCK1_ADD_3D = [
+    { a: 248, b: 376 }, { a: 457, b: 285 }, { a: 369, b: 474 }, { a: 538, b: 294 }, { a: 175, b: 648 },
+    { a: 486, b: 357 }, { a: 267, b: 584 }, { a: 395, b: 448 }, { a: 649, b: 273 }, { a: 576, b: 268 }
+  ];
+  const BLOCK1_ADD_4D = [
+    { a: 2468, b: 3754 }, { a: 4586, b: 2749 }, { a: 3675, b: 4858 }, { a: 1847, b: 5386 }, { a: 2954, b: 4678 },
+    { a: 5469, b: 2875 }, { a: 3784, b: 4569 }, { a: 6275, b: 1948 }, { a: 4638, b: 3795 }, { a: 2589, b: 5647 }
+  ];
+  const BLOCK1_SUB_2D = [
+    { a: 73, b: 28 }, { a: 82, b: 47 }, { a: 64, b: 39 }, { a: 91, b: 56 }, { a: 75, b: 38 },
+    { a: 84, b: 29 }, { a: 93, b: 46 }, { a: 62, b: 27 }, { a: 86, b: 58 }, { a: 71, b: 34 }
+  ];
+  const BLOCK1_SUB_3D = [
+    { a: 642, b: 278 }, { a: 835, b: 469 }, { a: 753, b: 386 }, { a: 924, b: 567 }, { a: 613, b: 248 },
+    { a: 841, b: 375 }, { a: 732, b: 468 }, { a: 952, b: 586 }, { a: 624, b: 359 }, { a: 815, b: 447 }
+  ];
+  const BLOCK1_SUB_4D = [
+    { a: 6425, b: 2768 }, { a: 8354, b: 4687 }, { a: 7532, b: 3865 }, { a: 9243, b: 5678 }, { a: 6134, b: 2469 },
+    { a: 8421, b: 3756 }, { a: 7342, b: 4685 }, { a: 9523, b: 5867 }, { a: 6254, b: 3589 }, { a: 8143, b: 4476 }
+  ];
+
+  function buildBlock1Question(ws) {
+    state.phase = 'digits';
+    const isAddition = (state.qIndex + state.roundSeed) % 2 === 0;
+    const digitsCount = state.qIndex === 0 ? 2 : (state.qIndex <= 2 ? 3 : 4);
+    const cols = digitsCount + 1;
+    const pNames = PLACE_NAMES[digitsCount];
+
+    if (isAddition) {
+      let a, b, aDigits, bDigits;
+      const presetPool = digitsCount === 4 ? BLOCK1_ADD_4D : (digitsCount === 3 ? BLOCK1_ADD_3D : BLOCK1_ADD_2D);
+      const pick = pickFromPoolWithReset(presetPool, p => `${p.a}+${p.b}`);
+      a = pick.a;
+      b = pick.b;
+      const sumAns = a + b;
+      initTaskMeta({
+        taskType: 'Сложение в столбик',
+        questionText: `${a} + ${b}`,
+        correctAnswer: `${sumAns}`,
+        correctDetails: `Решение в столбик: ${a} + ${b} = ${sumAns}`
+      });
+
+      aDigits = String(a).padStart(digitsCount, '0').split('').map(Number);
+      bDigits = String(b).padStart(digitsCount, '0').split('').map(Number);
+
+      const carriesInto = new Array(digitsCount).fill(0);
+      let cVal = 0;
+      for (let c = digitsCount - 1; c >= 0; c--) {
+        const total = aDigits[c] + bDigits[c] + cVal;
+        cVal = Math.floor(total / 10);
+        if (c > 0) carriesInto[c - 1] = cVal;
+      }
+
+      const grid = document.createElement('div');
+      grid.className = 'math-grid';
+      grid.style.gridTemplateColumns = `repeat(${cols}, auto)`;
+
+      grid.appendChild(createStaticCell('', ''));
+      const carryCells = {};
+      for (let c = 0; c < digitsCount; c++) {
+        if (c < digitsCount - 1 && carriesInto[c] > 0) {
+          const carryEl = createInputCell(true, false);
+          carryCells[c] = carryEl;
+          grid.appendChild(carryEl);
+        } else {
+          grid.appendChild(createStaticCell('', ''));
+        }
+      }
+
+      grid.appendChild(createStaticCell('', ''));
+      aDigits.forEach(d => grid.appendChild(createStaticCell(d)));
+      grid.appendChild(createStaticCell('+', 'cell-op'));
+      bDigits.forEach(d => grid.appendChild(createStaticCell(d)));
+
+      const line = document.createElement('div');
+      line.className = 'grid-line';
+      line.style.gridColumn = `1 / span ${cols}`;
+      grid.appendChild(line);
+
+      grid.appendChild(createStaticCell('', ''));
+      const ansCells = {};
+      for (let c = 0; c < digitsCount; c++) {
+        const ansEl = createInputCell(false);
+        ansCells[c] = ansEl;
+        grid.appendChild(ansEl);
+      }
+      ws.appendChild(grid);
+
+      let carry = 0;
+      for (let c = digitsCount - 1; c >= 0; c--) {
+        const total = aDigits[c] + bDigits[c] + carry;
+        const digitAns = total % 10;
+        const nextCarry = Math.floor(total / 10);
+        const exprPart = carry > 0 ? `${aDigits[c]} + ${bDigits[c]} + ${carry} (в уме)` : `${aDigits[c]} + ${bDigits[c]}`;
+
+        state.steps.push({
+          el: ansCells[c],
+          expected: digitAns,
+          shortLabel: `разряд ${pNames[c]} (${exprPart})`,
+          stepMsg: `Сложи разряд ${pNames[c]} (${exprPart}) и запиши цифру разряда под чертой.`
+        });
+        if (c > 0 && nextCarry > 0) {
+          state.steps.push({
+            el: carryCells[c - 1],
+            expected: nextCarry,
+            shortLabel: `перенос «в уме» в разряд ${pNames[c - 1]}`,
+            stepMsg: `Сумма в разряде ${pNames[c]} больше 9 — запиши перенос в ячейку «в уме» над разрядом ${pNames[c - 1]}.`
+          });
+        }
+        carry = nextCarry;
+      }
+    } else {
+      let a, b, aDigits, bDigits;
+      const presetPool = digitsCount === 4 ? BLOCK1_SUB_4D : (digitsCount === 3 ? BLOCK1_SUB_3D : BLOCK1_SUB_2D);
+      const pick = pickFromPoolWithReset(presetPool, p => `${p.a}-${p.b}`);
+      a = pick.a;
+      b = pick.b;
+      const diffAns = a - b;
+      initTaskMeta({
+        taskType: 'Вычитание в столбик',
+        questionText: `${a} − ${b}`,
+        correctAnswer: `${diffAns}`,
+        correctDetails: `Решение в столбик: ${a} − ${b} = ${diffAns}`
+      });
+
+      aDigits = String(a).padStart(digitsCount, '0').split('').map(Number);
+      bDigits = String(b).padStart(digitsCount, '0').split('').map(Number);
+
+      const borrowsFrom = new Array(digitsCount).fill(0);
+      let bVal = 0;
+      for (let c = digitsCount - 1; c >= 0; c--) {
+        let topVal = aDigits[c] - bVal;
+        let needBorrow = topVal < bDigits[c] ? 1 : 0;
+        if (c > 0) borrowsFrom[c - 1] = needBorrow;
+        bVal = needBorrow;
+      }
+
+      const grid = document.createElement('div');
+      grid.className = 'math-grid';
+      grid.style.gridTemplateColumns = `repeat(${cols}, auto)`;
+
+      grid.appendChild(createStaticCell('', ''));
+      const borrowCells = {};
+      for (let c = 0; c < digitsCount; c++) {
+        if (c < digitsCount - 1 && borrowsFrom[c] > 0) {
+          const bEl = createInputCell(true, true);
+          borrowCells[c] = bEl;
+          grid.appendChild(bEl);
+        } else {
+          grid.appendChild(createStaticCell('', ''));
+        }
+      }
+
+      grid.appendChild(createStaticCell('', ''));
+      aDigits.forEach(d => grid.appendChild(createStaticCell(d)));
+      grid.appendChild(createStaticCell('−', 'cell-op'));
+      bDigits.forEach(d => grid.appendChild(createStaticCell(d)));
+
+      const line = document.createElement('div');
+      line.className = 'grid-line';
+      line.style.gridColumn = `1 / span ${cols}`;
+      grid.appendChild(line);
+
+      grid.appendChild(createStaticCell('', ''));
+      const ansCells = {};
+      for (let c = 0; c < digitsCount; c++) {
+        const ansEl = createInputCell(false);
+        ansCells[c] = ansEl;
+        grid.appendChild(ansEl);
+      }
+      ws.appendChild(grid);
+
+      let borrowed = 0;
+      for (let c = digitsCount - 1; c >= 0; c--) {
+        let topVal = aDigits[c] - borrowed;
+        let needBorrow = 0;
+        if (topVal < bDigits[c]) {
+          needBorrow = 1;
+          topVal += 10;
+        }
+        if (c > 0 && needBorrow > 0) {
+          state.steps.push({
+            el: borrowCells[c - 1],
+            expected: 1,
+            shortLabel: `заём 1 у разряда ${pNames[c - 1]}`,
+            stepMsg: `В разряде ${pNames[c]} занимаем у разряда ${pNames[c - 1]}: введи 1 в ячейку «заём».`
+          });
+        }
+        state.steps.push({
+          el: ansCells[c],
+          expected: topVal - bDigits[c],
+          shortLabel: `разряд ${pNames[c]} (${topVal} − ${bDigits[c]})`,
+          stepMsg: `Вычти разряд ${pNames[c]}: ${topVal} − ${bDigits[c]} и запиши результат под чертой.`
+        });
+        borrowed = needBorrow;
+      }
+    }
+  }
+
+  const ORDER_TEMPLATES = [
+    {
+      tokens: ['(', '24', '+', '16', ')', '÷', '8', '+', '15'],
+      ops: [
+        { tokenIdx: 2, order: 1, label: '24 + 16', ans: 40 },
+        { tokenIdx: 5, order: 2, label: '40 ÷ 8', ans: 5 },
+        { tokenIdx: 7, order: 3, label: '5 + 15', ans: 20 }
+      ]
+    },
+    {
+      tokens: ['60', '−', '8', '×', '(', '14', '−', '9', ')'],
+      ops: [
+        { tokenIdx: 6, order: 1, label: '14 − 9', ans: 5 },
+        { tokenIdx: 3, order: 2, label: '8 × 5', ans: 40 },
+        { tokenIdx: 1, order: 3, label: '60 − 40', ans: 20 }
+      ]
+    },
+    {
+      tokens: ['45', '÷', '9', '+', '7', '×', '6'],
+      ops: [
+        { tokenIdx: 1, order: 1, label: '45 ÷ 9', ans: 5 },
+        { tokenIdx: 5, order: 2, label: '7 × 6', ans: 42 },
+        { tokenIdx: 3, order: 3, label: '5 + 42', ans: 47 }
+      ]
+    },
+    {
+      tokens: ['(', '50', '−', '23', ')', '÷', '3', '+', '18'],
+      ops: [
+        { tokenIdx: 2, order: 1, label: '50 − 23', ans: 27 },
+        { tokenIdx: 5, order: 2, label: '27 ÷ 3', ans: 9 },
+        { tokenIdx: 7, order: 3, label: '9 + 18', ans: 27 }
+      ]
+    },
+    {
+      tokens: ['9', '×', '(', '12', '−', '8', ')', '+', '24'],
+      ops: [
+        { tokenIdx: 4, order: 1, label: '12 − 8', ans: 4 },
+        { tokenIdx: 1, order: 2, label: '9 × 4', ans: 36 },
+        { tokenIdx: 7, order: 3, label: '36 + 24', ans: 60 }
+      ]
+    },
+    {
+      tokens: ['80', '−', '6', '×', '7', '+', '19'],
+      ops: [
+        { tokenIdx: 3, order: 1, label: '6 × 7', ans: 42 },
+        { tokenIdx: 1, order: 2, label: '80 − 42', ans: 38 },
+        { tokenIdx: 5, order: 3, label: '38 + 19', ans: 57 }
+      ]
+    },
+    {
+      tokens: ['(', '18', '+', '14', ')', '÷', '4', '×', '7'],
+      ops: [
+        { tokenIdx: 2, order: 1, label: '18 + 14', ans: 32 },
+        { tokenIdx: 5, order: 2, label: '32 ÷ 4', ans: 8 },
+        { tokenIdx: 7, order: 3, label: '8 × 7', ans: 56 }
+      ]
+    },
+    {
+      tokens: ['72', '÷', '(', '15', '−', '7', ')', '+', '36'],
+      ops: [
+        { tokenIdx: 4, order: 1, label: '15 − 7', ans: 8 },
+        { tokenIdx: 1, order: 2, label: '72 ÷ 8', ans: 9 },
+        { tokenIdx: 7, order: 3, label: '9 + 36', ans: 45 }
+      ]
+    },
+    {
+      tokens: ['8', '×', '6', '−', '36', '÷', '4'],
+      ops: [
+        { tokenIdx: 1, order: 1, label: '8 × 6', ans: 48 },
+        { tokenIdx: 5, order: 2, label: '36 ÷ 4', ans: 9 },
+        { tokenIdx: 3, order: 3, label: '48 − 9', ans: 39 }
+      ]
+    },
+    {
+      tokens: ['90', '−', '(', '28', '+', '17', ')', '÷', '5'],
+      ops: [
+        { tokenIdx: 4, order: 1, label: '28 + 17', ans: 45 },
+        { tokenIdx: 7, order: 2, label: '45 ÷ 5', ans: 9 },
+        { tokenIdx: 1, order: 3, label: '90 − 9', ans: 81 }
+      ]
+    },
+    {
+      tokens: ['54', '÷', '6', '×', '4', '+', '29'],
+      ops: [
+        { tokenIdx: 1, order: 1, label: '54 ÷ 6', ans: 9 },
+        { tokenIdx: 3, order: 2, label: '9 × 4', ans: 36 },
+        { tokenIdx: 5, order: 3, label: '36 + 29', ans: 65 }
+      ]
+    },
+    {
+      tokens: ['(', '63', '÷', '9', '+', '8', ')', '×', '4'],
+      ops: [
+        { tokenIdx: 2, order: 1, label: '63 ÷ 9', ans: 7 },
+        { tokenIdx: 4, order: 2, label: '7 + 8', ans: 15 },
+        { tokenIdx: 7, order: 3, label: '15 × 4', ans: 60 }
+      ]
+    }
+  ];
+
+  function buildBlock2Question(ws) {
+    state.phase = 'order';
+    state.orderExpected = 1;
+
+    const candidateIndices = ORDER_TEMPLATES.map((_, i) => i);
+    const tplIdx = pickFromPoolWithReset(candidateIndices, idx => `ord_${idx}`);
+    const tpl = ORDER_TEMPLATES[tplIdx];
+
+    const sortedOps = [...tpl.ops].sort((a, b) => a.order - b.order);
+    const finalAns = sortedOps[sortedOps.length - 1].ans;
+    const exprString = tpl.tokens.join(' ');
+    const stepsBreakdown = sortedOps.map(o => `${o.order}) ${o.label} = ${o.ans}`).join('; ');
+
+    initTaskMeta({
+      taskType: 'Порядок действий',
+      questionText: `${exprString} = ?`,
+      correctAnswer: `${finalAns}`,
+      correctDetails: `По шагам: ${stepsBreakdown}`,
+      preStepsTotal: tpl.ops.length
+    });
+
+    const container = document.createElement('div');
+    container.className = 'order-container';
+
+    const exprRow = document.createElement('div');
+    exprRow.className = 'expr-row';
+
+    tpl.tokens.forEach((tok, idx) => {
+      const opObj = tpl.ops.find(o => o.tokenIdx === idx);
+      if (opObj) {
+        const col = document.createElement('div');
+        col.className = 'expr-op-col';
+
+        const circle = document.createElement('div');
+        circle.className = 'order-circle';
+        circle.dataset.order = opObj.order;
+        circle.textContent = '?';
+        circle._orderHandler = (fromHint = false) => handleOrderCircleClick(circle, opObj.order, tok, tpl.ops.length, fromHint);
+        circle.onclick = () => circle._orderHandler(false);
+
+        const opTok = document.createElement('div');
+        opTok.className = 'expr-token';
+        opTok.style.color = 'var(--neon-blue)';
+        opTok.textContent = tok;
+
+        col.appendChild(circle);
+        col.appendChild(opTok);
+        exprRow.appendChild(col);
+      } else {
+        const span = document.createElement('div');
+        span.className = 'expr-token';
+        span.textContent = tok;
+        exprRow.appendChild(span);
+      }
+    });
+
+    container.appendChild(exprRow);
+
+    const substepsList = document.createElement('div');
+    substepsList.className = 'substeps-list';
+
+    sortedOps.forEach((op) => {
+      const card = document.createElement('div');
+      card.className = 'substep-card';
+
+      const label = document.createElement('div');
+      label.className = 'substep-label';
+      label.innerHTML = `<span class="step-badge">${op.order}</span> <span style="color:#94a3b8; font-size:0.86rem;">Действие №${op.order} (откроется по очереди)</span>`;
+      const revealedHTML = `<span class="step-badge">${op.order}</span> <span>${op.label} =</span>`;
+
+      const inputsWrap = document.createElement('div');
+      inputsWrap.className = 'substep-inputs';
+
+      String(op.ans).split('').map(Number).forEach((d, digitIdx) => {
+        const cell = createInputCell(false);
+        inputsWrap.appendChild(cell);
+        state.steps.push({
+          el: cell,
+          cardEl: card,
+          revealLabelEl: label,
+          revealLabelHTML: revealedHTML,
+          expected: d,
+          shortLabel: `действие №${op.order} (${op.label}), цифра ${digitIdx + 1}`,
+          stepMsg: `Вычисли действие №${op.order}: ${op.label} = ?`
+        });
+      });
+
+      card.appendChild(label);
+      card.appendChild(inputsWrap);
+      substepsList.appendChild(card);
+    });
+
+    const finalCard = document.createElement('div');
+    finalCard.className = 'substep-card unlocked';
+    finalCard.innerHTML = `<div class="substep-label"><span style="color:var(--neon-yellow)">ИТОГОВЫЙ ОТВЕТ:</span></div><div id="order-final-ans" class="rblx-text" style="font-size:1.25rem; color:var(--neon-green);">?</div>`;
+    substepsList.appendChild(finalCard);
+
+    container.appendChild(substepsList);
+    ws.appendChild(container);
+  }
+
+  function handleOrderCircleClick(circleEl, orderNum, opToken, totalOps, fromPaidHint = false) {
+    if (state.locked || state.roundFailed || state.phase !== 'order' || circleEl.classList.contains('correct')) return;
+
+    if (orderNum === state.orderExpected) {
+      playSound('correct');
+      circleEl.textContent = orderNum;
+      circleEl.classList.remove('wrong');
+      circleEl.classList.add('correct');
+      if (state.currentTaskMeta) state.currentTaskMeta.preStepsDone++;
+      rewardSuccess(circleEl, 4);
+
+      state.orderExpected++;
+      if (state.orderExpected > totalOps) {
+        state.phase = 'digits';
+        updateNumpadState();
+        const prefix = fromPaidHint ? `💡 Подсказка: открыто действие №${orderNum}!` : '';
+        if (!fromPaidHint) setStatus('✓ Порядок действий выбран верно! Вычисли по шагам.', 'var(--neon-green)');
+        highlightCurrentStep(prefix);
+      } else {
+        if (fromPaidHint) {
+          updateHintBanner(`💡 Подсказка: действие №${orderNum} открыто! Далее укажи действие №${state.orderExpected}.`);
+        } else {
+          setStatus(`✓ Верно! Выбрано действие №${orderNum}.`, 'var(--neon-green)');
+        }
+      }
+    } else {
+      playSound('wrong');
+      circleEl.classList.remove('wrong');
+      void circleEl.offsetWidth;
+      circleEl.classList.add('wrong');
+      logTaskMistake(`Выбран знак «${opToken}» как действие №${state.orderExpected}`);
+      applyMistakePenalty(circleEl);
+    }
+  }
+
+  function buildBlock3Question(ws) {
+    state.phase = 'digits';
+    if ((state.qIndex + state.roundSeed) % 2 === 0) {
+      buildMultiplicationColumn(ws);
+    } else {
+      buildDivisionCorner(ws);
+    }
+  }
+
+  const MULTIPLICATION_PROBLEMS = [
+    { a: 36, b: 4 }, { a: 48, b: 3 }, { a: 57, b: 4 }, { a: 64, b: 3 },
+    { a: 75, b: 5 }, { a: 86, b: 4 }, { a: 136, b: 4 }, { a: 245, b: 3 },
+    { a: 158, b: 4 }, { a: 237, b: 3 }, { a: 146, b: 5 }, { a: 174, b: 4 }
+  ];
+
+  function buildMultiplicationColumn(ws) {
+    const pick = pickFromPoolWithReset(MULTIPLICATION_PROBLEMS, p => `${p.a}*${p.b}`);
+    const a = pick.a;
+    const b = pick.b;
+    const prod = a * b;
+
+    initTaskMeta({
+      taskType: 'Умножение в столбик',
+      questionText: `${a} × ${b}`,
+      correctAnswer: `${prod}`,
+      correctDetails: `Произведение: ${a} × ${b} = ${prod}`
+    });
+
+    const aDigits = String(a).split('').map(Number);
+    const prodDigits = String(prod).split('').map(Number);
+    const cols = Math.max(aDigits.length, prodDigits.length) + 1;
+    const pNames = PLACE_NAMES[aDigits.length];
+
+    const carriesInto = new Array(aDigits.length).fill(0);
+    let tempCarry = 0;
+    for (let c = aDigits.length - 1; c >= 0; c--) {
+      const val = aDigits[c] * b + tempCarry;
+      tempCarry = Math.floor(val / 10);
+      if (c > 0) carriesInto[c - 1] = tempCarry;
+    }
+
+    const grid = document.createElement('div');
+    grid.className = 'math-grid';
+    grid.style.gridTemplateColumns = `repeat(${cols}, auto)`;
+
+    const padA = cols - 1 - aDigits.length;
+    for (let i = 0; i < 1 + padA; i++) grid.appendChild(createStaticCell('', ''));
+    const carryCells = {};
+    for (let c = 0; c < aDigits.length; c++) {
+      if (c < aDigits.length - 1 && carriesInto[c] > 0) {
+        const carryEl = createInputCell(true);
+        carryCells[c] = carryEl;
+        grid.appendChild(carryEl);
+      } else {
+        grid.appendChild(createStaticCell('', ''));
+      }
+    }
+
+    for (let i = 0; i < 1 + padA; i++) grid.appendChild(createStaticCell('', ''));
+    aDigits.forEach(d => grid.appendChild(createStaticCell(d)));
+    grid.appendChild(createStaticCell('×', 'cell-op'));
+    for (let i = 0; i < cols - 2; i++) grid.appendChild(createStaticCell('', ''));
+    grid.appendChild(createStaticCell(b));
+
+    const line = document.createElement('div');
+    line.className = 'grid-line';
+    line.style.gridColumn = `1 / span ${cols}`;
+    grid.appendChild(line);
+
+    const padProd = cols - prodDigits.length;
+    for (let i = 0; i < padProd; i++) grid.appendChild(createStaticCell('', ''));
+    const ansCells = [];
+    for (let i = 0; i < prodDigits.length; i++) {
+      const cell = createInputCell(false);
+      ansCells.push(cell);
+      grid.appendChild(cell);
+    }
+    ws.appendChild(grid);
+
+    let carry = 0;
+    const ansOffset = prodDigits.length - aDigits.length;
+    for (let c = aDigits.length - 1; c >= 0; c--) {
+      const val = aDigits[c] * b + carry;
+      const digitAns = val % 10;
+      const nextCarry = Math.floor(val / 10);
+      const exprPart = carry > 0 ? `${aDigits[c]} × ${b} + ${carry} (в уме)` : `${aDigits[c]} × ${b}`;
+      state.steps.push({
+        el: ansCells[c + ansOffset],
+        expected: digitAns,
+        shortLabel: `разряд ${pNames[c]} (${exprPart})`,
+        stepMsg: `Умножь разряд ${pNames[c]} (${exprPart}) и запиши цифру разряда под чертой.`
+      });
+      if (c > 0 && nextCarry > 0) {
+        state.steps.push({
+          el: carryCells[c - 1],
+          expected: nextCarry,
+          shortLabel: `перенос «в уме» в разряд ${pNames[c - 1]}`,
+          stepMsg: `Запиши перенос ${nextCarry} в ячейку «в уме» над разрядом ${pNames[c - 1]}.`
+        });
+      }
+      carry = nextCarry;
+    }
+    if (ansOffset > 0 && carry > 0) {
+      state.steps.push({
+        el: ansCells[0],
+        expected: carry,
+        shortLabel: `старший разряд произведения`,
+        stepMsg: `Запиши старший разряд произведения (${carry}) в первую клетку ответа.`
+      });
+    }
+  }
+
+  const DIVISION_PROBLEMS = [
+    { dividend: 84, divisor: 4 }, { dividend: 96, divisor: 4 }, { dividend: 75, divisor: 5 },
+    { dividend: 72, divisor: 3 }, { dividend: 92, divisor: 4 }, { dividend: 85, divisor: 5 },
+    { dividend: 78, divisor: 3 }, { dividend: 96, divisor: 6 }, { dividend: 492, divisor: 4 },
+    { dividend: 735, divisor: 5 }, { dividend: 852, divisor: 4 }, { dividend: 684, divisor: 3 }
+  ];
+
+  function buildDivisionCorner(ws) {
+    const prob = pickFromPoolWithReset(DIVISION_PROBLEMS, p => `${p.dividend}/${p.divisor}`);
+    const quotientVal = prob.dividend / prob.divisor;
+    initTaskMeta({
+      taskType: 'Деление уголком',
+      questionText: `${prob.dividend} ÷ ${prob.divisor}`,
+      correctAnswer: `${quotientVal}`,
+      correctDetails: `Частное: ${prob.dividend} ÷ ${prob.divisor} = ${quotientVal}`
+    });
+
+    const dDigits = String(prob.dividend).split('').map(Number);
+    const divisor = prob.divisor;
+    const qDigits = String(quotientVal).split('').map(Number);
+    const n = dDigits.length;
+    const totalCols = n + 1 + qDigits.length;
+
+    const grid = document.createElement('div');
+    grid.className = 'math-grid division-grid';
+    grid.style.gridTemplateColumns = `repeat(${totalCols}, auto)`;
+
+    const totalRows = 2 * n + 1;
+    const matrix = [];
+    for (let r = 0; r < totalRows; r++) {
+      const row = [];
+      for (let c = 0; c < totalCols; c++) {
+        const cell = createStaticCell('', '');
+        grid.appendChild(cell);
+        row.push(cell);
+      }
+      matrix.push(row);
+    }
+
+    for (let i = 0; i < n; i++) {
+      matrix[0][i + 1].classList.add('cell-digit');
+      matrix[0][i + 1].textContent = dDigits[i];
+    }
+    matrix[0][n].classList.add('div-corner-right');
+    matrix[1][n].classList.add('div-corner-right');
+    matrix[0][n + 1].classList.add('cell-digit', 'div-corner-bottom');
+    matrix[0][n + 1].textContent = divisor;
+    for (let i = 1; i < qDigits.length; i++) {
+      matrix[0][n + 1 + i].classList.add('div-corner-bottom');
+    }
+
+    const qCells = [];
+    for (let i = 0; i < qDigits.length; i++) {
+      const qEl = matrix[1][n + 1 + i];
+      qEl.classList.add('cell-input');
+      qCells.push(qEl);
+    }
+
+    let rem = 0;
+    let curRow = 1;
+    for (let i = 0; i < n; i++) {
+      const prevNum = rem;
+      const currentNum = rem * 10 + dDigits[i];
+      const qDigit = Math.floor(currentNum / divisor);
+      const subProd = qDigit * divisor;
+      const nextRem = currentNum - subProd;
+
+      if (i > 0) {
+        if (prevNum > 0) {
+          matrix[curRow][i].classList.add('cell-input');
+          state.steps.push({
+            el: matrix[curRow][i],
+            expected: prevNum,
+            shortLabel: `остаток (${prevNum})`,
+            stepMsg: `Запиши остаток от предыдущего вычитания (${prevNum}).`
+          });
+        }
+        matrix[curRow][i + 1].classList.add('cell-input');
+        state.steps.push({
+          el: matrix[curRow][i + 1],
+          expected: dDigits[i],
+          shortLabel: `снос цифры ${dDigits[i]}`,
+          stepMsg: `Снеси следующую цифру делимого (${dDigits[i]}) вниз.`
+        });
+        curRow++;
+      }
+
+      state.steps.push({
+        el: qCells[i],
+        expected: qDigit,
+        shortLabel: `цифра частного (${currentNum} ÷ ${divisor})`,
+        stepMsg: `Раздели ${currentNum} на ${divisor} и запиши цифру частного (${qDigit}).`
+      });
+
+      const subDigits = String(subProd).split('').map(Number);
+      if (subDigits.length === 2) {
+        matrix[curRow][i - 1].classList.add('div-minus-cell');
+        matrix[curRow][i - 1].innerHTML = '<span>−</span>';
+        matrix[curRow][i].classList.add('cell-input', 'div-sub-bottom');
+        matrix[curRow][i + 1].classList.add('cell-input', 'div-sub-bottom');
+        state.steps.push({
+          el: matrix[curRow][i],
+          expected: subDigits[0],
+          shortLabel: `десятки вычитаемого (${qDigit} × ${divisor} = ${subProd})`,
+          stepMsg: `Умножь ${qDigit} × ${divisor} = ${subProd}: запиши цифру десятков (${subDigits[0]}).`
+        });
+        state.steps.push({
+          el: matrix[curRow][i + 1],
+          expected: subDigits[1],
+          shortLabel: `единицы вычитаемого (${qDigit} × ${divisor} = ${subProd})`,
+          stepMsg: `Запиши цифру единиц вычитаемого (${subDigits[1]}).`
+        });
+      } else {
+        matrix[curRow][i].classList.add('div-minus-cell');
+        matrix[curRow][i].innerHTML = '<span>−</span>';
+        matrix[curRow][i + 1].classList.add('cell-input', 'div-sub-bottom');
+        state.steps.push({
+          el: matrix[curRow][i + 1],
+          expected: subDigits[0],
+          shortLabel: `произведение (${qDigit} × ${divisor} = ${subProd})`,
+          stepMsg: `Умножь ${qDigit} × ${divisor} = ${subProd} и запиши вычитаемое.`
+        });
+      }
+
+      curRow++;
+      rem = nextRem;
+      if (i === n - 1) {
+        matrix[curRow][i + 1].classList.add('cell-input');
+        state.steps.push({
+          el: matrix[curRow][i + 1],
+          expected: 0,
+          shortLabel: `итоговый остаток 0`,
+          stepMsg: `Вычти ${subProd} − ${subProd} и запиши итоговый остаток 0.`
+        });
+      }
+    }
+    ws.appendChild(grid);
+  }
+
+  const BLITZ_PRESET_TASKS = [
+    { isMult: true, f1: 2, f2: 7 }, { isMult: false, f1: 2, f2: 9 },
+    { isMult: true, f1: 3, f2: 6 }, { isMult: false, f1: 3, f2: 7 },
+    { isMult: true, f1: 4, f2: 8 }, { isMult: true, f1: 5, f2: 9 },
+    { isMult: true, f1: 6, f2: 7 }, { isMult: false, f1: 7, f2: 7 },
+    { isMult: true, f1: 8, f2: 8 }, { isMult: false, f1: 9, f2: 9 },
+    { isMult: true, f1: 3, f2: 8 }, { isMult: false, f1: 4, f2: 6 },
+    { isMult: true, f1: 4, f2: 7 }, { isMult: false, f1: 5, f2: 8 },
+    { isMult: true, f1: 6, f2: 8 }, { isMult: false, f1: 6, f2: 9 },
+    { isMult: true, f1: 7, f2: 8 }, { isMult: false, f1: 8, f2: 9 },
+    { isMult: true, f1: 7, f2: 9 }, { isMult: false, f1: 4, f2: 9 },
+    { isMult: true, f1: 5, f2: 7 }, { isMult: false, f1: 3, f2: 9 },
+    { isMult: true, f1: 6, f2: 6 }, { isMult: false, f1: 5, f2: 6 }
+  ];
+
+  function buildBlock4Blitz(ws) {
+    state.phase = 'digits';
+    let isMult, f1, f2, prod, exprText, ans;
+    if (Math.random() < 0.65) {
+      const pick = pickFromPoolWithReset(BLITZ_PRESET_TASKS, t => {
+        const p = t.f1 * t.f2;
+        return t.isMult ? `${t.f1} × ${t.f2} =` : `${p} ÷ ${t.f1} =`;
+      });
+      isMult = pick.isMult;
+      f1 = pick.f1;
+      f2 = pick.f2;
+      prod = f1 * f2;
+      exprText = isMult ? `${f1} × ${f2} =` : `${prod} ÷ ${f1} =`;
+      ans = isMult ? prod : f2;
+    } else {
+      let tries = 0;
+      while (true) {
+        tries++;
+        isMult = Math.random() < 0.6;
+        f1 = randInt(2, 9);
+        f2 = randInt(2, 9);
+        prod = f1 * f2;
+        exprText = isMult ? `${f1} × ${f2} =` : `${prod} ÷ ${f1} =`;
+        ans = isMult ? prod : f2;
+        if (!state.usedQuestions.includes(exprText) || tries >= 40) {
+          if (!state.usedQuestions.includes(exprText)) {
+            state.usedQuestions.push(exprText);
+          }
+          break;
+        }
+      }
+    }
+
+    const cleanExpr = isMult ? `${f1} × ${f2}` : `${prod} ÷ ${f1}`;
+    initTaskMeta({
+      taskType: isMult ? 'Блиц: таблица умножения' : 'Блиц: таблица деления',
+      questionText: `${cleanExpr} = ?`,
+      correctAnswer: `${ans}`,
+      correctDetails: `Табличное значение: ${cleanExpr} = ${ans}`
+    });
+
+    const box = document.createElement('div');
+    box.className = 'blitz-box';
+
+    const label = document.createElement('div');
+    label.className = 'blitz-expr rblx-text';
+    label.textContent = exprText;
+    box.appendChild(label);
+
+    const inputsWrap = document.createElement('div');
+    inputsWrap.style.display = 'flex';
+    inputsWrap.style.gap = '6px';
+
+    String(ans).split('').map(Number).forEach((d) => {
+      const cell = createInputCell(false);
+      inputsWrap.appendChild(cell);
+      state.steps.push({
+        el: cell,
+        expected: d,
+        shortLabel: `ответ на ${cleanExpr}`,
+        stepMsg: `Таблица умножения: ${cleanExpr} = ${ans}. Введи ответ!`
+      });
+    });
+
+    box.appendChild(inputsWrap);
+    ws.appendChild(box);
+  }
+
+  function resumeBlitzTimer() {
+    stopBlitzTimer(true);
+    const bar = document.getElementById('blitz-timer-bar');
+    if (bar) {
+      const pct = Math.max(0, (blitzTimeLeft / 8.0) * 100);
+      bar.style.width = `${pct}%`;
+    }
+    blitzInterval = setInterval(() => {
+      if (state.locked || state.roundFailed || state.canResumeGame) return;
+      blitzTimeLeft -= 0.1;
+      const pct = Math.max(0, (blitzTimeLeft / 8.0) * 100);
+      if (bar) bar.style.width = `${pct}%`;
+
+      if (blitzTimeLeft <= 0) {
+        stopBlitzTimer(true);
+        playSound('wrong');
+        logTaskMistake('Истекло время таймера (8 сек)');
+        applyMistakePenalty(bar, 'ВРЕМЯ ВЫШЛО! Осталось 1 сердечко — таймер запущен заново!');
+        if (!state.roundFailed && state.hearts > 0) {
+          startBlitzTimer();
+        }
+      }
+    }, 100);
+  }
+
+  function startBlitzTimer() {
+    stopBlitzTimer();
+    blitzTimeLeft = 8.0;
+    resumeBlitzTimer();
+  }
+
+  function stopBlitzTimer(onlyInterval = false) {
+    if (blitzInterval) {
+      clearInterval(blitzInterval);
+      blitzInterval = null;
+    }
+    if (onlyInterval) return;
+    if (mistakeTimeout) { clearTimeout(mistakeTimeout); mistakeTimeout = null; }
+    if (nextQuestionTimeout) { clearTimeout(nextQuestionTimeout); nextQuestionTimeout = null; }
+    if (failModalTimeout) { clearTimeout(failModalTimeout); failModalTimeout = null; }
+  }
+
+  function generateWordProblemData() {
+    const schoolClean = (state.profile.school || '').trim();
+    const schoolGenitive = schoolClean ? `школы №${schoolClean}` : 'школы';
+    const gradeGenitive = formatGradeGenitive(state.profile.grade);
+    const opType = (state.wpOrderTypes && state.wpOrderTypes[state.qIndex]) || ((state.qIndex % 4) + 1);
+
+    const poolsByType = {
+      1: [
+        {
+          id: 'add_1', op: '+', a: 46, b: 38, ans: 84,
+          text: `Ученики ${gradeGenitive} ${schoolGenitive} собрали для школьной ярмарки 46 поделок, а соседний класс подготовил ещё 38 поделок. Сколько всего поделок сделали ребята?`,
+          unit: 'поделок'
+        },
+        {
+          id: 'wp_add_2', op: '+', a: 57, b: 28, ans: 85,
+          text: `В библиотеке ${schoolGenitive} ученики ${gradeGenitive} взяли 57 книг с приключениями и 28 детских энциклопедий. Сколько всего книг взяли ребята?`,
+          unit: 'книг'
+        },
+        {
+          id: 'wp_add_3', op: '+', a: 148, b: 175, ans: 323,
+          text: `За первый раунд математического турнира в Roblox команда ${gradeGenitive} набрала 148 очков, а за второй — ещё 175 очков. Сколько всего очков набрала команда?`,
+          unit: 'очков'
+        },
+        {
+          id: 'wp_add_4', op: '+', a: 265, b: 158, ans: 423,
+          text: `Для озеленения двора ${schoolGenitive} весной высадили 265 тюльпанов и 158 нарциссов. Сколько всего цветов высадили во дворе?`,
+          unit: 'цветов'
+        }
+      ],
+      2: [
+        {
+          id: 'wp_sub_1', op: '−', a: 48, b: 15, ans: 33,
+          text: `В олимпиаде по математике ${schoolGenitive} участвовало 48 человек. Из них 15 участников уже сдали свои работы. Сколько учеников ещё решают задания?`,
+          unit: 'человек'
+        },
+        {
+          id: 'wp_sub_2', op: '−', a: 83, b: 27, ans: 56,
+          text: `У ученика ${gradeGenitive} в тренажёре было 83 робукса. Он приобрёл в магазине скинов кепку за 27 робуксов. Сколько робуксов у него осталось?`,
+          unit: 'робуксов'
+        },
+        {
+          id: 'wp_sub_3', op: '−', a: 342, b: 168, ans: 174,
+          text: `На уроке физкультуры в ${schoolGenitive} нужно пробежать дистанцию 342 метра. Ученик ${gradeGenitive} уже пробежал 168 метров. Сколько метров осталось пробежать?`,
+          unit: 'метров'
+        },
+        {
+          id: 'wp_sub_4', op: '−', a: 524, b: 257, ans: 267,
+          text: `В школьную столовую ${schoolGenitive} привезли 524 яблока. За большую перемену ребятам выдали 257 яблок. Сколько яблок осталось в столовой?`,
+          unit: 'яблок'
+        }
+      ],
+      3: [
+        {
+          id: 'wp_mul_1', op: '×', a: 26, b: 3, ans: 78,
+          text: `Для поездки учеников ${gradeGenitive} ${schoolGenitive} в планетарий заказали 3 автобуса по 26 мест в каждом. Сколько всего ребят смогут поехать на экскурсию?`,
+          unit: 'ребят'
+        },
+        {
+          id: 'wp_mul_2', op: '×', a: 38, b: 4, ans: 152,
+          text: `В кружок робототехники ${schoolGenitive} привезли 4 набора конструктора по 38 деталей в каждом. Сколько всего деталей во всех наборах?`,
+          unit: 'деталей'
+        },
+        {
+          id: 'wp_mul_3', op: '×', a: 45, b: 5, ans: 225,
+          text: `Один уровень математического квеста длится 45 секунд. Сколько секунд потребуется ученику ${gradeGenitive}, чтобы пройти 5 таких уровней?`,
+          unit: 'секунд'
+        },
+        {
+          id: 'wp_mul_4', op: '×', a: 128, b: 3, ans: 384,
+          text: `За победу на карте в Roblox начисляют 128 монет. Сколько монет получит игрок из ${gradeGenitive}, если выиграет 3 раза подряд?`,
+          unit: 'монет'
+        }
+      ],
+      4: [
+        {
+          id: 'wp_div_1', op: '÷', a: 84, b: 4, ans: 21,
+          text: `Для праздника в ${schoolGenitive} надули 84 воздушных шарика и поровну разделили их между 4 классами. Сколько шариков получил каждый класс?`,
+          unit: 'шариков'
+        },
+        {
+          id: 'wp_div_2', op: '÷', a: 96, b: 4, ans: 24,
+          text: `На командной викторине 96 четвероклассников разделились на команды по 4 человека. Сколько всего получилось команд?`,
+          unit: 'команд'
+        },
+        {
+          id: 'wp_div_3', op: '÷', a: 75, b: 5, ans: 15,
+          text: `Ученик ${gradeGenitive} решил 75 задач за 5 дней, решая поровну каждый день. Сколько задач в день он решал?`,
+          unit: 'задач'
+        },
+        {
+          id: 'wp_div_4', op: '÷', a: 72, b: 3, ans: 24,
+          text: `На школьной выставке ${schoolGenitive} 72 рисунка разместили поровну на 3 стендах. Сколько рисунков оказалось на каждом стенде?`,
+          unit: 'рисунков'
+        }
+      ]
+    };
+
+    const pool = poolsByType[opType] || poolsByType[1];
+    return pickFromPoolWithReset(pool, item => item.id);
+  }
+
+  function buildBlock5WordProblem(ws) {
+    state.phase = 'wp_op';
+    const prob = generateWordProblemData();
+    state.wpExpectedOp = prob.op;
+
+    initTaskMeta({
+      taskType: `Текстовая задача (${prob.op})`,
+      questionText: prob.text,
+      correctAnswer: `${prob.ans} ${prob.unit}`,
+      correctDetails: `Действие: «${prob.op}» • Выражение: ${prob.a} ${prob.op} ${prob.b} = ${prob.ans}`,
+      preStepsTotal: 1
+    });
+
+    const card = document.createElement('div');
+    card.className = 'word-problem-card';
+
+    const textEl = document.createElement('div');
+    textEl.className = 'wp-text';
+    textEl.textContent = prob.text;
+    card.appendChild(textEl);
+
+    const opSelector = document.createElement('div');
+    opSelector.className = 'wp-op-selector';
+    opSelector.innerHTML = `<span class="rblx-text" style="font-size:0.82rem; color:var(--neon-yellow);">1. ВЫБЕРИ ДЕЙСТВИЕ РЕШЕНИЯ:</span>`;
+
+    const opBtnsWrap = document.createElement('div');
+    opBtnsWrap.className = 'wp-op-btns';
+
+    ['+', '−', '×', '÷'].forEach(opSym => {
+      const btn = document.createElement('button');
+      btn.className = 'rblx-btn btn-blue wp-op-btn';
+      btn.dataset.op = opSym;
+      btn.textContent = opSym;
+      btn._wpHandler = (fromHint = false) => handleWordProblemOpSelect(btn, opSym, prob, opSelector, solutionArea, fromHint);
+      btn.onclick = () => btn._wpHandler(false);
+      opBtnsWrap.appendChild(btn);
+    });
+
+    opSelector.appendChild(opBtnsWrap);
+    card.appendChild(opSelector);
+
+    const solutionArea = document.createElement('div');
+    solutionArea.className = 'wp-solution-area';
+
+    const colBox = document.createElement('div');
+    colBox.className = 'wp-solution-box';
+    const tagTitle = prob.op === '÷'
+      ? '2. ЗАПИШИ ЧИСЛА ИЗ ЗАДАЧИ И ВЫПОЛНИ ДЕЛЕНИЕ УГОЛКОМ:'
+      : '2. ЗАПИШИ ЧИСЛА ИЗ ЗАДАЧИ И РЕШИ В СТОЛБИК:';
+    colBox.innerHTML = `<div class="wp-section-tag">${tagTitle}</div>`;
+
+    const gridHolder = document.createElement('div');
+    colBox.appendChild(gridHolder);
+    solutionArea.appendChild(colBox);
+
+    const ansRow = document.createElement('div');
+    ansRow.className = 'wp-answer-row';
+    ansRow.innerHTML = `<span class="rblx-text" style="font-size:0.95rem; color:var(--neon-green);">3. ОТВЕТ:</span>`;
+
+    const ansInputsWrap = document.createElement('div');
+    ansInputsWrap.style.display = 'flex';
+    ansInputsWrap.style.gap = '5px';
+
+    const unitLabel = document.createElement('span');
+    unitLabel.style.fontSize = '0.88rem';
+    unitLabel.style.fontWeight = '900';
+    unitLabel.style.color = '#e2e8f0';
+    unitLabel.textContent = prob.unit;
+
+    ansRow.appendChild(ansInputsWrap);
+    ansRow.appendChild(unitLabel);
+    solutionArea.appendChild(ansRow);
+
+    card.appendChild(solutionArea);
+    ws.appendChild(card);
+
+    buildWordProblemColumnTemplate(prob, gridHolder, ansInputsWrap, ansRow);
+  }
+
+  function handleWordProblemOpSelect(btnEl, chosenOp, prob, opSelectorEl, solutionAreaEl, fromPaidHint = false) {
+    if (state.locked || state.roundFailed || state.phase !== 'wp_op') return;
+
+    if (chosenOp === prob.op) {
+      playSound('correct');
+      if (state.currentTaskMeta) state.currentTaskMeta.preStepsDone = 1;
+      rewardSuccess(btnEl, 4);
+      opSelectorEl.style.borderStyle = 'solid';
+      opSelectorEl.style.borderColor = 'var(--neon-green)';
+      opSelectorEl.innerHTML = `<span class="rblx-text" style="font-size:0.82rem; color:var(--neon-green);">✓ ДЕЙСТВИЕ ВЫБРАНО ВЕРНО: «${chosenOp}»</span>`;
+      solutionAreaEl.style.display = 'flex';
+      state.phase = 'digits';
+      updateNumpadState();
+      const prefix = fromPaidHint ? `💡 Подсказка (действие «${chosenOp}»):` : '';
+      if (!fromPaidHint) {
+        if (state.hintUnlockedForQuestion) {
+          setStatus('🔓 Подсказка активирована! Запиши решение в столбик.', 'var(--neon-blue)');
+        } else {
+          setStatus('🔒 Подсказки скрыты. Запиши решение в столбик!', '#94a3b8');
+        }
+      }
+      highlightCurrentStep(prefix);
+    } else {
+      playSound('wrong');
+      btnEl.classList.remove('btn-blue');
+      btnEl.classList.add('btn-red');
+      btnEl.disabled = true;
+      logTaskMistake(`Выбран знак действия «${chosenOp}» вместо «${prob.op}»`);
+      applyMistakePenalty(btnEl, `Неверное действие! Подумай, какой знак нужен для решения задачи.`);
+    }
+  }
+
+  function buildWordProblemColumnTemplate(prob, gridHolder, ansInputsWrap, ansRowCard) {
+    const aDigits = String(prob.a).split('').map(Number);
+    const bDigits = String(prob.b).split('').map(Number);
+    const ansDigits = String(prob.ans).split('').map(Number);
+
+    if (prob.op === '÷') {
+      const divisor = prob.b;
+      const n = aDigits.length;
+      const totalCols = n + 1 + ansDigits.length;
+      const grid = document.createElement('div');
+      grid.className = 'math-grid division-grid';
+      grid.style.gridTemplateColumns = `repeat(${totalCols}, auto)`;
+
+      const totalRows = 2 * n + 1;
+      const matrix = [];
+      for (let r = 0; r < totalRows; r++) {
+        const row = [];
+        for (let c = 0; c < totalCols; c++) {
+          const cell = createStaticCell('', '');
+          grid.appendChild(cell);
+          row.push(cell);
+        }
+        matrix.push(row);
+      }
+
+      for (let i = 0; i < n; i++) {
+        matrix[0][i + 1].classList.add('cell-input');
+        state.steps.push({
+          el: matrix[0][i + 1],
+          expected: aDigits[i],
+          shortLabel: `делимое ${prob.a}, цифра ${i + 1}`,
+          stepMsg: `Запиши делимое ${prob.a}: введи цифру ${aDigits[i]}.`
+        });
+      }
+      matrix[0][n].classList.add('div-corner-right');
+      matrix[1][n].classList.add('div-corner-right');
+      matrix[0][n + 1].classList.add('cell-input', 'div-corner-bottom');
+      state.steps.push({
+        el: matrix[0][n + 1],
+        expected: divisor,
+        shortLabel: `делитель ${divisor}`,
+        stepMsg: `Запиши делитель ${divisor} в правую часть уголка.`
+      });
+      for (let i = 1; i < ansDigits.length; i++) {
+        matrix[0][n + 1 + i].classList.add('div-corner-bottom');
+      }
+
+      const qCells = [];
+      for (let i = 0; i < ansDigits.length; i++) {
+        const qEl = matrix[1][n + 1 + i];
+        qEl.classList.add('cell-input');
+        qCells.push(qEl);
+      }
+
+      let rem = 0;
+      let curRow = 1;
+      for (let i = 0; i < n; i++) {
+        const prevNum = rem;
+        const currentNum = rem * 10 + aDigits[i];
+        const qDigit = Math.floor(currentNum / divisor);
+        const subProd = qDigit * divisor;
+        const nextRem = currentNum - subProd;
+
+        if (i > 0) {
+          if (prevNum > 0) {
+            matrix[curRow][i].classList.add('cell-input');
+            state.steps.push({
+              el: matrix[curRow][i],
+              expected: prevNum,
+              shortLabel: `остаток (${prevNum})`,
+              stepMsg: `Запиши остаток от вычитания (${prevNum}).`
+            });
+          }
+          matrix[curRow][i + 1].classList.add('cell-input');
+          state.steps.push({
+            el: matrix[curRow][i + 1],
+            expected: aDigits[i],
+            shortLabel: `снос цифры ${aDigits[i]}`,
+            stepMsg: `Снеси следующую цифру делимого (${aDigits[i]}).`
+          });
+          curRow++;
+        }
+
+        state.steps.push({
+          el: qCells[i],
+          expected: qDigit,
+          shortLabel: `цифра частного (${currentNum} ÷ ${divisor})`,
+          stepMsg: `Раздели ${currentNum} на ${divisor} и запиши цифру частного (${qDigit}).`
+        });
+
+        const subDigits = String(subProd).split('').map(Number);
+        if (subDigits.length === 2) {
+          matrix[curRow][i - 1].classList.add('div-minus-cell');
+          matrix[curRow][i - 1].innerHTML = '<span>−</span>';
+          matrix[curRow][i].classList.add('cell-input', 'div-sub-bottom');
+          matrix[curRow][i + 1].classList.add('cell-input', 'div-sub-bottom');
+          state.steps.push({
+            el: matrix[curRow][i],
+            expected: subDigits[0],
+            shortLabel: `десятки вычитаемого (${subProd})`,
+            stepMsg: `Умножь ${qDigit} × ${divisor} = ${subProd}: запиши десятки (${subDigits[0]}).`
+          });
+          state.steps.push({
+            el: matrix[curRow][i + 1],
+            expected: subDigits[1],
+            shortLabel: `единицы вычитаемого (${subProd})`,
+            stepMsg: `Запиши единицы вычитаемого (${subDigits[1]}).`
+          });
+        } else {
+          matrix[curRow][i].classList.add('div-minus-cell');
+          matrix[curRow][i].innerHTML = '<span>−</span>';
+          matrix[curRow][i + 1].classList.add('cell-input', 'div-sub-bottom');
+          state.steps.push({
+            el: matrix[curRow][i + 1],
+            expected: subDigits[0],
+            shortLabel: `произведение (${qDigit} × ${divisor} = ${subProd})`,
+            stepMsg: `Умножь ${qDigit} × ${divisor} = ${subProd} и запиши вычитаемое.`
+          });
+        }
+
+        curRow++;
+        rem = nextRem;
+        if (i === n - 1) {
+          matrix[curRow][i + 1].classList.add('cell-input');
+          state.steps.push({
+            el: matrix[curRow][i + 1],
+            expected: 0,
+            shortLabel: `остаток 0`,
+            stepMsg: `Запиши итоговый остаток 0.`
+          });
+        }
+      }
+      gridHolder.appendChild(grid);
+    } else {
+      const digitsCount = aDigits.length;
+      const pNames = PLACE_NAMES[digitsCount];
+      const cols = Math.max(digitsCount, ansDigits.length) + 1;
+      const padA = cols - 1 - digitsCount;
+      const padB = cols - 1 - bDigits.length;
+      const padAns = cols - ansDigits.length;
+
+      const auxInto = new Array(digitsCount).fill(0);
+      if (prob.op === '+') {
+        let cVal = 0;
+        for (let c = digitsCount - 1; c >= 0; c--) {
+          const total = aDigits[c] + bDigits[c] + cVal;
+          cVal = Math.floor(total / 10);
+          if (c > 0) auxInto[c - 1] = cVal;
+        }
+      } else if (prob.op === '−') {
+        let bVal = 0;
+        for (let c = digitsCount - 1; c >= 0; c--) {
+          const topVal = aDigits[c] - bVal;
+          const needBorrow = topVal < bDigits[c] ? 1 : 0;
+          if (c > 0) auxInto[c - 1] = needBorrow;
+          bVal = needBorrow;
+        }
+      } else if (prob.op === '×') {
+        let cVal = 0;
+        for (let c = digitsCount - 1; c >= 0; c--) {
+          const total = aDigits[c] * prob.b + cVal;
+          cVal = Math.floor(total / 10);
+          if (c > 0) auxInto[c - 1] = cVal;
+        }
+      }
+
+      const grid = document.createElement('div');
+      grid.className = 'math-grid';
+      grid.style.gridTemplateColumns = `repeat(${cols}, auto)`;
+
+      for (let i = 0; i < 1 + padA; i++) grid.appendChild(createStaticCell('', ''));
+      const auxCells = {};
+      for (let c = 0; c < digitsCount; c++) {
+        if (c < digitsCount - 1 && auxInto[c] > 0) {
+          const auxEl = createInputCell(true, prob.op === '−');
+          auxCells[c] = auxEl;
+          grid.appendChild(auxEl);
+        } else {
+          grid.appendChild(createStaticCell('', ''));
+        }
+      }
+
+      for (let i = 0; i < 1 + padA; i++) grid.appendChild(createStaticCell('', ''));
+      const aCells = aDigits.map(() => {
+        const cell = createInputCell(false);
+        grid.appendChild(cell);
+        return cell;
+      });
+
+      grid.appendChild(createStaticCell(prob.op, 'cell-op'));
+      for (let i = 0; i < padB; i++) grid.appendChild(createStaticCell('', ''));
+      const bCells = bDigits.map(() => {
+        const cell = createInputCell(false);
+        grid.appendChild(cell);
+        return cell;
+      });
+
+      const line = document.createElement('div');
+      line.className = 'grid-line';
+      line.style.gridColumn = `1 / span ${cols}`;
+      grid.appendChild(line);
+
+      for (let i = 0; i < padAns; i++) grid.appendChild(createStaticCell('', ''));
+      const resCells = ansDigits.map(() => {
+        const cell = createInputCell(false);
+        grid.appendChild(cell);
+        return cell;
+      });
+
+      gridHolder.appendChild(grid);
+
+      const aStepObjs = [];
+      const bStepObjs = [];
+      aCells.forEach((el, c) => {
+        const stepObj = {
+          el,
+          expected: aDigits[c],
+          shortLabel: `первое число (${prob.a}), разряд ${pNames[c]}`,
+          stepMsg: `Запиши первое число (${prob.a}): введи цифру разряда ${pNames[c]} (${aDigits[c]}).`
+        };
+        aStepObjs.push(stepObj);
+        state.steps.push(stepObj);
+      });
+      bCells.forEach((el, c) => {
+        const bNames = PLACE_NAMES[bDigits.length] || ['единиц'];
+        const stepObj = {
+          el,
+          expected: bDigits[c],
+          shortLabel: `второе число (${prob.b}), разряд ${bNames[c] || 'единиц'}`,
+          stepMsg: `Запиши второе число (${prob.b}): введи цифру (${bDigits[c]}).`
+        };
+        bStepObjs.push(stepObj);
+        state.steps.push(stepObj);
+      });
+
+      if (prob.op === '+' && aDigits.length === bDigits.length && aDigits[0] !== bDigits[0]) {
+        aStepObjs[0].altExpectedDigit = bDigits[0];
+        aStepObjs[0].allowSwapAddends = () => {
+          for (let c = 0; c < digitsCount; c++) {
+            const tmp = aDigits[c];
+            aDigits[c] = bDigits[c];
+            bDigits[c] = tmp;
+            aStepObjs[c].expected = aDigits[c];
+            aStepObjs[c].shortLabel = `первое слагаемое (${prob.b}), разряд ${pNames[c]}`;
+            aStepObjs[c].stepMsg = `Запиши первое слагаемое (${prob.b}): введи цифру разряда ${pNames[c]} (${aDigits[c]}).`;
+            bStepObjs[c].expected = bDigits[c];
+            bStepObjs[c].shortLabel = `второе слагаемое (${prob.a}), разряд ${pNames[c]}`;
+            bStepObjs[c].stepMsg = `Запиши второе слагаемое (${prob.a}): введи цифру разряда ${pNames[c]} (${bDigits[c]}).`;
+          }
+        };
+      }
+
+      const ansOffset = ansDigits.length - digitsCount;
+      if (prob.op === '+') {
+        let carry = 0;
+        for (let c = digitsCount - 1; c >= 0; c--) {
+          const total = aDigits[c] + bDigits[c] + carry;
+          const digitAns = total % 10;
+          const nextCarry = Math.floor(total / 10);
+          state.steps.push({
+            el: resCells[c + ansOffset],
+            expected: digitAns,
+            shortLabel: `сумма в разряде ${pNames[c]}`,
+            stepMsg: `Сложи разряд ${pNames[c]} и запиши цифру (${digitAns}) под чертой.`
+          });
+          if (c > 0 && nextCarry > 0 && auxCells[c - 1]) {
+            state.steps.push({
+              el: auxCells[c - 1],
+              expected: nextCarry,
+              shortLabel: `перенос «в уме» в разряд ${pNames[c - 1]}`,
+              stepMsg: `Запиши перенос ${nextCarry} в ячейку «в уме» над разрядом ${pNames[c - 1]}.`
+            });
+          }
+          carry = nextCarry;
+        }
+        if (ansOffset > 0 && carry > 0) {
+          state.steps.push({
+            el: resCells[0],
+            expected: carry,
+            shortLabel: `старший разряд суммы`,
+            stepMsg: `Запиши старший разряд суммы (${carry}) под чертой.`
+          });
+        }
+      } else if (prob.op === '−') {
+        let borrowed = 0;
+        for (let c = digitsCount - 1; c >= 0; c--) {
+          let topVal = aDigits[c] - borrowed;
+          let needBorrow = 0;
+          if (topVal < bDigits[c]) {
+            needBorrow = 1;
+            topVal += 10;
+          }
+          if (c > 0 && needBorrow > 0 && auxCells[c - 1]) {
+            state.steps.push({
+              el: auxCells[c - 1],
+              expected: 1,
+              shortLabel: `заём 1 у разряда ${pNames[c - 1]}`,
+              stepMsg: `Занимаем 1 десяток у разряда ${pNames[c - 1]}: введи 1 в ячейку «заём».`
+            });
+          }
+          state.steps.push({
+            el: resCells[c],
+            expected: topVal - bDigits[c],
+            shortLabel: `разность в разряде ${pNames[c]} (${topVal} − ${bDigits[c]})`,
+            stepMsg: `Вычти разряд ${pNames[c]}: ${topVal} − ${bDigits[c]} = ${topVal - bDigits[c]}.`
+          });
+          borrowed = needBorrow;
+        }
+      } else if (prob.op === '×') {
+        let carry = 0;
+        for (let c = digitsCount - 1; c >= 0; c--) {
+          const total = aDigits[c] * prob.b + carry;
+          const digitAns = total % 10;
+          const nextCarry = Math.floor(total / 10);
+          state.steps.push({
+            el: resCells[c + ansOffset],
+            expected: digitAns,
+            shortLabel: `произведение в разряде ${pNames[c]}`,
+            stepMsg: `Умножь разряд ${pNames[c]} на ${prob.b} и запиши цифру (${digitAns}) под чертой.`
+          });
+          if (c > 0 && nextCarry > 0 && auxCells[c - 1]) {
+            state.steps.push({
+              el: auxCells[c - 1],
+              expected: nextCarry,
+              shortLabel: `перенос «в уме» в разряд ${pNames[c - 1]}`,
+              stepMsg: `Запиши перенос ${nextCarry} в ячейку «в уме» над разрядом ${pNames[c - 1]}.`
+            });
+          }
+          carry = nextCarry;
+        }
+        if (ansOffset > 0 && carry > 0) {
+          state.steps.push({
+            el: resCells[0],
+            expected: carry,
+            shortLabel: `старший разряд произведения`,
+            stepMsg: `Запиши старший разряд ответа (${carry}) в первую клетку под чертой.`
+          });
+        }
+      }
+    }
+
+    ansDigits.forEach((d, idx) => {
+      const ansCell = createInputCell(false);
+      ansInputsWrap.appendChild(ansCell);
+      state.steps.push({
+        el: ansCell,
+        cardEl: ansRowCard,
+        expected: d,
+        shortLabel: `итоговый ответ задачи, цифра ${idx + 1}`,
+        stepMsg: `ЗАПИШИ ОТВЕТ ЗАДАЧИ: Перенеси цифру ${d} результата (${prob.ans} ${prob.unit}) в поле ответа!`
+      });
+    });
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    loadProgress();
+    updateHUD();
+    renderAllAvatars();
+    renderMissions();
+  });
+</script>
+</body>
+</html>
