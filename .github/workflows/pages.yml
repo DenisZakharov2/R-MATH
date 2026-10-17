@@ -1,4 +1,4 @@
-name: Deploy ROBLOX MATH to GitHub Pages
+name: Deploy R MATH to GitHub Pages
 
 on:
   push:

@@ -50,8 +50,8 @@
 Скачайте репозиторий и откройте файл `index.html` в любом современном браузере (Chrome, Safari, Edge, Firefox) на компьютере, планшете или смартфоне:
 
 ```bash
-git clone https://github.com/<ваш-логин>/roblox-math-trainer.git
-cd roblox-math-trainer
+git clone https://github.com/<ваш-логин>/R%20MATH.git
+cd "R MATH"
 open index.html
 ```
 
@@ -65,7 +65,7 @@ open index.html
 ## 📂 Структура репозитория
 
 ```text
-roblox-math-trainer/
+R MATH/
 ├── index.html                           # Основной файл приложения (для GitHub Pages и браузера)
 ├── README.md                            # Описание проекта и инструкция по запуску
 ├── LICENSE                              # Лицензия MIT
