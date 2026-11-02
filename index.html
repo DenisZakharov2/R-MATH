@@ -2726,7 +2726,9 @@
       if (state.pendingNextQuestion) {
         state.pendingNextQuestion = false;
         advanceToNextQuestion();
-      } else if (state.block === 4 && !state.locked) {
+      } else if (state.block === 4) {
+        // Возобновляем таймер Блица: если ввод ещё заблокирован (анимация ошибки),
+        // интервал сам пропустит тики до разблокировки.
         resumeBlitzTimer();
       }
     } else {
