@@ -5,7 +5,7 @@
 ## 1. Обзор архитектуры
 
 Приложение построено по принципу **Single-File Zero-Dependency SPA**:
-* **Разметка (HTML5):** 5 основных экранов (`#menu-screen`, `#profile-screen`, `#shop-screen`, `#archive-screen`, `#game-screen`) и модальное окно итогов раунда (`#result-modal`), переключаемых через управление `style.display`.
+* **Разметка (HTML5):** 5 основных экранов (`#menu-screen`, `#profile-screen`, `#shop-screen`, `#archive-screen`, `#game-screen`) и модальное окно итогов этапа (`#result-modal`), переключаемых через управление `style.display`.
 * **Стили (CSS3):** модульная система стилей на базе CSS Custom Properties (`--neon-blue`, `--neon-green`, `--cell-size` и др.) с адаптивными медиазапросами для мобильных экранов, планшетов и десктопов.
 * **Логика (Vanilla JS):** 7 логических модулей внутри единого тега `<script>`.
 
@@ -13,7 +13,7 @@
 
 | Модуль | Основные функции и константы | Назначение |
 | :--- | :--- | :--- |
-| **1. Справочники** | `SKIN_TONES`, `BASE_HAIR_STYLES`, `BASE_HAIR_COLORS`, `EYE_STYLES`, `SHOP_ITEMS`, `BLOCK_TITLES` | Хранение каталога магазина (44 карточки: 38 предметов и 6 базовых вариантов), базовых настроек внешности и названий учебных блоков. |
+| **1. Справочники** | `SKIN_TONES`, `BASE_HAIR_STYLES`, `BASE_HAIR_COLORS`, `EYE_STYLES`, `SHOP_ITEMS`, `BLOCK_TITLES`, `DAILY_MISSIONS` | Хранение каталога магазина (44 карточки: 38 предметов и 6 базовых вариантов), базовых настроек внешности и названий учебных блоков. |
 | **2. Генератор SVG** | `buildHeroSVG(uid)`, `renderAllAvatars()` | Векторная сборка персонажа в координатной сетке `120×130` из 9 слоёв: фон/крылья (`backSVG`), задний слой волос (`hairBackSVG`), руки и торс с одеждой (`topDecor`), голова, передний слой причёски (`hairFrontSVG`), глаза (`eyesSVG`), очки (`glassesSVG`), головной убор (`hatSVG`) и питомец (`petSVG`). |
 | **3. Звуковой движок** | `initAudio()`, `playSound(type)`, `toggleSound()` | Процедурный синтез звуков через `AudioContext` (`OscillatorNode` + `GainNode`) для событий `click`, `correct`, `wrong`, `fail`, `win`. |
 | **4. Состояние и хранилище** | `state`, `loadProgress()`, `saveProgress()`, `ensureDailyDate()` | Централизованное хранение состояния игры и синхронизация с `localStorage` (`roblox_math_trainer_save_v8`). |
