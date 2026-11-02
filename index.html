@@ -2,7 +2,7 @@
 <!--
   ==============================================================================
   R MATH: Интерактивный математический тренажёр (4 класс)
-  Версия: 1.1.0
+  Версия: 1.1.1
   Лицензия: MIT
   Описание: Одностраничное веб-приложение (SPA) без внешних JS-зависимостей
   для отработки навыков устного и письменного счёта в 4 классе начальной школы.
@@ -1609,47 +1609,47 @@
 
     <div class="menu-cards">
       <button class="rblx-btn btn-green mode-btn" onclick="startBlock(1)">
-        <div class="mode-info">
+        <span class="mode-info">
           <span class="mode-tag">БЛОК 1 • 5 ПРИМЕРОВ</span>
           <span class="mode-name rblx-text">Сложение и вычитание в столбик</span>
           <span class="mode-desc">Двузначные, трёхзначные и четырёхзначные числа + «в уме» и «заём»</span>
-        </div>
+        </span>
         <span class="mode-icon">➕</span>
       </button>
 
       <button class="rblx-btn btn-orange mode-btn" onclick="startBlock(2)">
-        <div class="mode-info">
+        <span class="mode-info">
           <span class="mode-tag">БЛОК 2 • 5 ПРИМЕРОВ</span>
           <span class="mode-name rblx-text">Порядок выполнения действий</span>
           <span class="mode-desc">Скобки, ×, ÷, +, − и пошаговый расчёт</span>
-        </div>
+        </span>
         <span class="mode-icon">🔢</span>
       </button>
 
       <button class="rblx-btn btn-purple mode-btn" onclick="startBlock(3)">
-        <div class="mode-info">
+        <span class="mode-info">
           <span class="mode-tag">БЛОК 3 • 5 ПРИМЕРОВ</span>
           <span class="mode-name rblx-text">Умножение и деление в столбик</span>
           <span class="mode-desc">Умножение в столбик и полное деление «уголком»</span>
-        </div>
+        </span>
         <span class="mode-icon">➗</span>
       </button>
 
       <button class="rblx-btn btn-red mode-btn" onclick="startBlock(4)">
-        <div class="mode-info">
+        <span class="mode-info">
           <span class="mode-tag">БЛОК 4 • 10 ЗАДАНИЙ НА СКОРОСТЬ</span>
           <span class="mode-name rblx-text">⚡ БЛИЦ: Таблица умножения и деления</span>
           <span class="mode-desc">Успей решить за 8 секунд каждый пример!</span>
-        </div>
+        </span>
         <span class="mode-icon">⚡</span>
       </button>
 
       <button class="rblx-btn btn-blue mode-btn" onclick="startBlock(5)">
-        <div class="mode-info">
+        <span class="mode-info">
           <span class="mode-tag">БЛОК 5 • 5 ТЕКСТОВЫХ ЗАДАЧ С РЕШЕНИЕМ</span>
           <span class="mode-name rblx-text">📖 ЗАДАЧИ: Запись решения в столбик и ответ</span>
           <span class="mode-desc">Выбери действие, запиши числа в столбик, вычисли и напиши ответ!</span>
-        </div>
+        </span>
         <span class="mode-icon">📖</span>
       </button>
     </div>
@@ -1842,12 +1842,12 @@
   <div id="result-modal" class="modal-backdrop">
     <div id="modal-box" class="modal-box glass-panel">
       <div id="modal-avatar" style="width: 84px; height: 92px; margin: 0 auto;"></div>
-      <h2 id="modal-title" class="rblx-text" style="font-size: 1.75rem; color: var(--neon-green);">РАУНД ЗАВЕРШЁН!</h2>
+      <h2 id="modal-title" class="rblx-text" style="font-size: 1.75rem; color: var(--neon-green);">ЭТАП ЗАВЕРШЁН!</h2>
       <p id="modal-subtitle" style="font-weight: 700; color: #e2e8f0; font-size: 0.85rem;">Тренировка завершена!</p>
       
       <div class="reward-row">
         <div class="reward-card">
-          <div style="font-size: 0.72rem; color: #94a3b8;">ИТОГ РАУНДА</div>
+          <div style="font-size: 0.72rem; color: #94a3b8;">ИТОГ ЭТАПА</div>
           <div id="modal-robux" class="reward-val rblx-text">+0 R$</div>
         </div>
         <div class="reward-card">
@@ -1907,7 +1907,7 @@
 
   const SHOP_ITEMS = [
     { id: 'hair_default', category: 'hair', name: 'Из настроек профиля', price: 0, icon: '👤' },
-    { id: 'hair_blonde', category: 'hair', name: 'Золотые локоны RBLX', price: 50, icon: '👱‍♀️' },
+    { id: 'hair_blonde', category: 'hair', name: 'Золотые локоны', price: 50, icon: '👱‍♀️' },
     { id: 'hair_pink', category: 'hair', name: 'Розовый неон', price: 90, icon: '🌸' },
     { id: 'hair_blue', category: 'hair', name: 'Кибер-бирюза', price: 120, icon: '💎' },
     { id: 'hair_violet', category: 'hair', name: 'Фиолетовый космос', price: 150, icon: '🔮' },
@@ -1926,7 +1926,7 @@
 
     { id: 'hat_none', category: 'hat', name: 'Без шапки', price: 0, icon: '➖' },
     { id: 'hat_bow', category: 'hat', name: 'Бант Отличника', price: 45, icon: '🎀' },
-    { id: 'hat_cap', category: 'hat', name: 'Кепка Roblox', price: 75, icon: '🧢' },
+    { id: 'hat_cap', category: 'hat', name: 'Кепка R', price: 75, icon: '🧢' },
     { id: 'hat_headphones', category: 'hat', name: 'Геймерские наушники', price: 110, icon: '🎧' },
     { id: 'hat_cat', category: 'hat', name: 'Светящиеся ушки', price: 145, icon: '🐱' },
     { id: 'hat_crown', category: 'hat', name: 'Золотая Корона', price: 210, icon: '👑' },
@@ -1950,7 +1950,7 @@
     { id: 'back_none', category: 'back', name: 'Без спинного слота', price: 0, icon: '➖' },
     { id: 'back_bag', category: 'back', name: 'Школьный ранец', price: 60, icon: '🎒' },
     { id: 'back_cape', category: 'back', name: 'Плащ Супер-Математика', price: 125, icon: '🦸' },
-    { id: 'back_wings', category: 'back', name: 'Крылья Ангела RBLX', price: 195, icon: '🪽' },
+    { id: 'back_wings', category: 'back', name: 'Крылья Ангела', price: 195, icon: '🪽' },
     { id: 'back_bat_wings', category: 'back', name: 'Крылья Летучей мыши', price: 215, icon: '🦇' },
     { id: 'back_raven_wings', category: 'back', name: 'Крылья Ворона', price: 235, icon: '🐦‍⬛' },
     { id: 'back_dragon_wings', category: 'back', name: 'Крылья Дракона', price: 260, icon: '🐲' },
@@ -1964,6 +1964,17 @@
     4: 'Блок 4 • Блиц на скорость',
     5: 'Блок 5 • Текстовые задачи'
   };
+
+  /**
+   * Справочник ежедневных миссий: единый источник истины и для отрисовки
+   * списка, и для выдачи награды (claimMission).
+   * counter — поле счётчика в state.daily.
+   */
+  const DAILY_MISSIONS = [
+    { key: 'flawless', title: 'Решить 20 примеров без ошибок', target: 20, reward: 100, counter: 'flawlessExamples' },
+    { key: 'tasks', title: 'Решить 10 текстовых задач в столбик (Блок 5)', target: 10, reward: 100, counter: 'tasksSolved' },
+    { key: 'blitz', title: 'Пройти раунд Блиц на скорость (Блок 4)', target: 1, reward: 100, counter: 'blitzWins' }
+  ];
 
   let currentShopTab = 'hair';
   let archiveFilter = 'all';
@@ -2007,7 +2018,7 @@
    * ============================================================================
    * МОДУЛЬ 2. ГЕНЕРАТОР ВЕКТОРНОГО АВАТАРА (SVG)
    * Собирает многослойное изображение героя из базовых параметров профиля
-   * и всех 6 одновременно надетых слотов магазина (back, hair, top, eyes, glasses, hat, pet).
+   * и всех 6 одновременно надетых слотов магазина (back, hair, top, glasses, hat, pet).
    * ============================================================================
    * @param {string} uid - Уникальный суффикс для ID SVG-градиентов.
    * @returns {string} Готовая SVG-разметка персонажа.
@@ -3110,29 +3121,10 @@
     ensureDailyDate();
     saveProgress();
 
-    const missions = [
-      {
-        key: 'flawless',
-        title: 'Решить 20 примеров без ошибок',
-        current: Math.min(20, state.daily.flawlessExamples),
-        target: 20,
-        reward: 100
-      },
-      {
-        key: 'tasks',
-        title: 'Решить 10 текстовых задач в столбик (Блок 5)',
-        current: Math.min(10, state.daily.tasksSolved),
-        target: 10,
-        reward: 100
-      },
-      {
-        key: 'blitz',
-        title: 'Пройти раунд Блиц на скорость (Блок 4)',
-        current: Math.min(1, state.daily.blitzWins),
-        target: 1,
-        reward: 100
-      }
-    ];
+    const missions = DAILY_MISSIONS.map(def => ({
+      ...def,
+      current: Math.min(def.target, state.daily[def.counter] || 0)
+    }));
 
     const completedCount = missions.filter(m => m.current >= m.target).length;
     const dateEl = document.getElementById('missions-date');
@@ -3153,7 +3145,7 @@
       if (isClaimed) {
         btnHTML = `<button class="rblx-btn btn-slate mission-btn" disabled>✓ ПОЛУЧЕНО</button>`;
       } else if (isDone) {
-        btnHTML = `<button class="rblx-btn btn-green mission-btn" onclick="claimMission('${m.key}', ${m.reward})">ЗАБРАТЬ +${m.reward} R$</button>`;
+        btnHTML = `<button class="rblx-btn btn-green mission-btn" onclick="claimMission('${m.key}')">ЗАБРАТЬ +${m.reward} R$</button>`;
       } else {
         btnHTML = `<span style="font-size:0.75rem; font-weight:900; color:var(--neon-yellow); flex-shrink:0;">${m.current}/${m.target}</span>`;
       }
@@ -3171,16 +3163,23 @@
     });
   }
 
-  function claimMission(key, reward) {
+  /**
+   * Выдаёт награду за выполненную миссию дня. Размер награды и условие выполнения
+   * берутся из справочника DAILY_MISSIONS, а не из разметки кнопки.
+   * @param {string} key - Идентификатор миссии.
+   */
+  function claimMission(key) {
     ensureDailyDate();
-    if (state.daily.claimed[key]) return;
+    const mission = DAILY_MISSIONS.find(m => m.key === key);
+    if (!mission || state.daily.claimed[key]) return;
+    if ((state.daily[mission.counter] || 0) < mission.target) return;
     playSound('win');
     state.daily.claimed[key] = true;
-    state.robux += reward;
+    state.robux += mission.reward;
     saveProgress();
     updateHUD();
     renderMissions();
-    spawnFloatingText(`+${reward} R$ МИССИЯ!`, 'var(--neon-yellow)', document.getElementById('robux-val'));
+    spawnFloatingText(`+${mission.reward} R$ МИССИЯ!`, 'var(--neon-yellow)', document.getElementById('robux-val'));
   }
 
   function updateHUD() {
@@ -3351,7 +3350,7 @@
 
     if (state.hearts === 1) {
       setStatus(
-        reasonText || `ОШИБКА! Списано −${deducted} R$. Осталось 1 сердечко — при следующей ошибке задание будет провалено!`,
+        reasonText || `ОШИБКА! Списано −${deducted} R$. Осталось 1 сердечко — при следующей ошибке этап будет провален!`,
         'var(--neon-yellow)'
       );
     } else if (state.hearts <= 0) {
@@ -3704,7 +3703,7 @@
       retryBtn.className = 'rblx-btn btn-green';
     } else {
       modalBox.style.borderColor = 'var(--neon-red)';
-      titleEl.textContent = 'ЗАДАНИЕ ПРОВАЛЕНО!';
+      titleEl.textContent = 'ЭТАП ПРОВАЛЕН!';
       titleEl.style.color = 'var(--neon-red)';
       retryBtn.textContent = 'НАЧАТЬ ЗАНОВО';
       retryBtn.className = 'rblx-btn btn-red';
@@ -3765,6 +3764,21 @@
     4: ['тысяч', 'сотен', 'десятков', 'единиц']
   };
 
+  /**
+   * Возвращает названия разрядов для числа с указанным количеством цифр
+   * (от старшего разряда к младшему). Защищает генераторы заданий от
+   * падения, если в пул добавят число непривычной разрядности.
+   * @param {number} digitsCount - Количество цифр в числе (1 и более).
+   * @returns {string[]}
+   */
+  function placeNamesFor(digitsCount) {
+    if (PLACE_NAMES[digitsCount]) return PLACE_NAMES[digitsCount];
+    const base = ['тысяч', 'сотен', 'десятков', 'единиц'];
+    const extra = ['десятков тысяч', 'сотен тысяч', 'миллионов'];
+    if (digitsCount <= 4) return base.slice(4 - Math.max(1, digitsCount));
+    return [...extra.slice(0, digitsCount - 4).reverse(), ...base];
+  }
+
   const BLOCK1_ADD_2D = [
     { a: 38, b: 47 }, { a: 29, b: 56 }, { a: 45, b: 38 }, { a: 57, b: 26 }, { a: 34, b: 49 },
     { a: 68, b: 25 }, { a: 46, b: 37 }, { a: 59, b: 34 }, { a: 27, b: 68 }, { a: 48, b: 45 }
@@ -3795,7 +3809,7 @@
     const isAddition = (state.qIndex + state.roundSeed) % 2 === 0;
     const digitsCount = state.qIndex === 0 ? 2 : (state.qIndex <= 2 ? 3 : 4);
     const cols = digitsCount + 1;
-    const pNames = PLACE_NAMES[digitsCount];
+    const pNames = placeNamesFor(digitsCount);
 
     if (isAddition) {
       let a, b, aDigits, bDigits;
@@ -4234,7 +4248,7 @@
     const aDigits = String(a).split('').map(Number);
     const prodDigits = String(prod).split('').map(Number);
     const cols = Math.max(aDigits.length, prodDigits.length) + 1;
-    const pNames = PLACE_NAMES[aDigits.length];
+    const pNames = placeNamesFor(aDigits.length);
 
     const carriesInto = new Array(aDigits.length).fill(0);
     let tempCarry = 0;
@@ -4599,7 +4613,7 @@
         },
         {
           id: 'wp_add_3', op: '+', a: 148, b: 175, ans: 323,
-          text: `За первый раунд математического турнира в Roblox команда ${gradeGenitive} набрала 148 очков, а за второй — ещё 175 очков. Сколько всего очков набрала команда?`,
+          text: `За первый раунд математического турнира команда ${gradeGenitive} набрала 148 очков, а за второй — ещё 175 очков. Сколько всего очков набрала команда?`,
           unit: 'очков'
         },
         {
@@ -4616,8 +4630,8 @@
         },
         {
           id: 'wp_sub_2', op: '−', a: 83, b: 27, ans: 56,
-          text: `У ученика ${gradeGenitive} в тренажёре было 83 робукса. Он приобрёл в магазине скинов кепку за 27 робуксов. Сколько робуксов у него осталось?`,
-          unit: 'робуксов'
+          text: `У ученика ${gradeGenitive} в тренажёре было 83 монеты R$. Он приобрёл в магазине скинов кепку за 27 монет. Сколько монет у него осталось?`,
+          unit: 'монет'
         },
         {
           id: 'wp_sub_3', op: '−', a: 342, b: 168, ans: 174,
@@ -4648,7 +4662,7 @@
         },
         {
           id: 'wp_mul_4', op: '×', a: 128, b: 3, ans: 384,
-          text: `За победу на карте в Roblox начисляют 128 монет. Сколько монет получит игрок из ${gradeGenitive}, если выиграет 3 раза подряд?`,
+          text: `За победу на игровой карте начисляют 128 монет. Сколько монет получит игрок из ${gradeGenitive}, если выиграет 3 раза подряд?`,
           unit: 'монет'
         }
       ],
@@ -4660,7 +4674,7 @@
         },
         {
           id: 'wp_div_2', op: '÷', a: 96, b: 4, ans: 24,
-          text: `На командной викторине 96 четвероклассников разделились на команды по 4 человека. Сколько всего получилось команд?`,
+          text: `На командной викторине 96 учеников ${gradeGenitive} разделились на команды по 4 человека. Сколько всего получилось команд?`,
           unit: 'команд'
         },
         {
@@ -4926,7 +4940,7 @@
       gridHolder.appendChild(grid);
     } else {
       const digitsCount = aDigits.length;
-      const pNames = PLACE_NAMES[digitsCount];
+      const pNames = placeNamesFor(digitsCount);
       const cols = Math.max(digitsCount, ansDigits.length) + 1;
       const padA = cols - 1 - digitsCount;
       const padB = cols - 1 - bDigits.length;
@@ -5015,7 +5029,7 @@
         state.steps.push(stepObj);
       });
       bCells.forEach((el, c) => {
-        const bNames = PLACE_NAMES[bDigits.length] || ['единиц'];
+        const bNames = placeNamesFor(bDigits.length);
         const stepObj = {
           el,
           expected: bDigits[c],
@@ -5092,7 +5106,7 @@
             });
           }
           state.steps.push({
-            el: resCells[c],
+            el: resCells[c + ansOffset],
             expected: topVal - bDigits[c],
             shortLabel: `разность в разряде ${pNames[c]} (${topVal} − ${bDigits[c]})`,
             stepMsg: `Вычти разряд ${pNames[c]}: ${topVal} − ${bDigits[c]} = ${topVal - bDigits[c]}.`

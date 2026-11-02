@@ -13,13 +13,13 @@
 
 | Модуль | Основные функции и константы | Назначение |
 | :--- | :--- | :--- |
-| **1. Справочники** | `SKIN_TONES`, `BASE_HAIR_STYLES`, `BASE_HAIR_COLORS`, `EYE_STYLES`, `SHOP_ITEMS`, `BLOCK_TITLES` | Хранение каталога из 38 предметов магазина, базовых настроек внешности и названий учебных блоков. |
-| **2. Генератор SVG** | `buildHeroSVG(uid)`, `renderAllAvatars()` | Векторная сборка персонажа в координатной сетке `120×130` из 7 слоёв: фон/крылья (`backSVG`), задний слой волос (`hairBackSVG`), руки и торс с одеждой (`topDecor`), голова, передний слой причёски (`hairFrontSVG`), глаза (`eyesSVG`), очки (`glassesSVG`), головной убор (`hatSVG`) и питомец (`petSVG`). |
+| **1. Справочники** | `SKIN_TONES`, `BASE_HAIR_STYLES`, `BASE_HAIR_COLORS`, `EYE_STYLES`, `SHOP_ITEMS`, `BLOCK_TITLES` | Хранение каталога магазина (44 карточки: 38 предметов и 6 базовых вариантов), базовых настроек внешности и названий учебных блоков. |
+| **2. Генератор SVG** | `buildHeroSVG(uid)`, `renderAllAvatars()` | Векторная сборка персонажа в координатной сетке `120×130` из 9 слоёв: фон/крылья (`backSVG`), задний слой волос (`hairBackSVG`), руки и торс с одеждой (`topDecor`), голова, передний слой причёски (`hairFrontSVG`), глаза (`eyesSVG`), очки (`glassesSVG`), головной убор (`hatSVG`) и питомец (`petSVG`). |
 | **3. Звуковой движок** | `initAudio()`, `playSound(type)`, `toggleSound()` | Процедурный синтез звуков через `AudioContext` (`OscillatorNode` + `GainNode`) для событий `click`, `correct`, `wrong`, `fail`, `win`. |
 | **4. Состояние и хранилище** | `state`, `loadProgress()`, `saveProgress()`, `ensureDailyDate()` | Централизованное хранение состояния игры и синхронизация с `localStorage` (`roblox_math_trainer_save_v8`). |
 | **5. Экраны и оверлеи** | `hideAllScreens()`, `returnFromOverlay()`, `openProfileEditor()`, `openShop()`, `openArchive()`, `renderMissions()` | Навигация между экранами с сохранением паузы активного раунда (`state.canResumeGame` и `state.pendingNextQuestion`). |
 | **6. Игровое ядро** | `startBlock()`, `loadQuestion()`, `highlightCurrentStep()`, `handleDigitInput()`, `buyRoundHint()`, `applyMistakePenalty()`, `completeQuestionSuccess()` | Пошаговая проверка ввода цифр, обработка платной подсказки, начисление `R$` и учёт сердечек. |
-| **7. Генераторы заданий** | `buildBlock1Question()`, `buildBlock2Question()`, `buildBlock3Question()`, `buildMultiplicationColumn()`, `buildDivisionCorner()`, `buildBlock4Blitz()`, `buildBlock5WordProblem()`, `buildWordProblemColumnTemplate()` | Построение DOM-сеток математических заданий и формирование массива пошаговой проверки `state.steps`. |
+| **7. Генераторы заданий** | `buildBlock1Question()`, `buildBlock2Question()`, `buildBlock3Question()`, `buildMultiplicationColumn()`, `buildDivisionCorner()`, `buildBlock4Blitz()`, `buildBlock5WordProblem()`, `buildWordProblemColumnTemplate()`, `placeNamesFor()` | Построение DOM-сеток математических заданий и формирование массива пошаговой проверки `state.steps`. `placeNamesFor(digitsCount)` возвращает названия разрядов для любой разрядности и защищает генераторы от падения при добавлении чисел непривычной длины. |
 
 ## 3. Механизм пошаговой проверки (`state.steps`)
 
